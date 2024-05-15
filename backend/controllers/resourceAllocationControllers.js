@@ -147,7 +147,7 @@ exports.getAllocationId = async (req,res) =>  {
         // console.log(req.query);
         // console.log(allocation)
         res.json({
-           data:allocation._id,
+           data:allocation,
         });
 
     } catch (err) {
