@@ -1,100 +1,99 @@
 const ResourceAllocation = require('../models/resourceAllocationSchema')
 // Set default allocation
-exports.setDefaultAllocation = (req,res) =>{
-    // Pass the defaultAllocation object to be set
-    ResourceAllocation.updateMany(
-        {resourceObjectId: req.params.resourceObjectId},
-        {defaultAllocation: req.body},
-        {new:true}
-    ).then(response =>{
+exports.setDefaultAllocation = async(req,res) =>{
+    try {
+        // Pass the defaultAllocation object to be set
+        const response = await ResourceAllocation.updateMany(
+            {resourceObjectId: req.params.resourceObjectId},
+            {defaultAllocation: req.body},
+            {new:true}
+        )
         res.json({
             message:"Success, default allocations updated",
             data: response
         })
-    }).catch(err =>{
-        console.log(err)
+    } catch(err) {
         res.json({
             message:"Fail, default allocations not updated",
-            data:err
+            error:err
         })
-    })
+    }
 }
 
 // Get default allocation
-exports.getDefaultAllocation = (req, res) => {
-    ResourceAllocation.findById(req.params._id)
-        .then(allocation => {
-            if (!allocation) {
-                return res.status(404).json({ success: false, message: "Allocation not found" });
-            }
-            res.json({ success: true, data: allocation.defaultAllocation });
-        })
-        .catch(err => {
-            res.status(500).json({ success: false, error: err});
-        });
-};
+exports.getDefaultAllocation = async(req, res) => {
+    try {
+        const allocation = await ResourceAllocation.findById(req.params._id)
+        if (!allocation) {
+            return res.status(404).json({ success: false, message: "Allocation not found" });
+        }
+        res.json({ success: true, data: allocation.defaultAllocation });
+    } catch(err) {
+        res.status(500).json({ success: false, error: err});
+    }
+}
 
 // Add allocation
-exports.addAllocation = (req,res) =>{
-    ResourceAllocation.findById(req.params._id).then(response =>{
-        console.log({
-            message:"Success, data found",
-            data:response
-        })
+exports.addAllocation = async(req,res) =>{
+    try {
+        const response = await ResourceAllocation.findById(req.params._id)
+
         let records = response.allocationRecords
         records.push(req.body)
+
+        try {
         // Pass the allocationRecords object to be added
-        ResourceAllocation.findByIdAndUpdate(req.params._id,
-            { allocationRecords:records },
-            { new:true }).then(response2 =>{
+            const response2 = await ResourceAllocation.findByIdAndUpdate(req.params._id,
+                { allocationRecords:records },
+                { new:true })
             res.json({
                 message:"Success, allocation added",
                 data:response2
             })
-        }).catch(err =>{
+        } catch(err) {
             res.json({
                 message:"Fail, allocation not added",
-                data:err
+                error:err
             })
+        }
+    } catch(err) {
+        res.json({
+            message:"Fail",
+            error:err
         })
-    }).catch(err =>{
-        console.log({
-            message:"Fail, data not found",
-            data:err
-        })
-    })
+    }
 }
 
 // Remove allocation
-exports.removeAllocation = (req,res) =>{
+exports.removeAllocation = async(req,res) =>{
+    try {
         // Pass the allocationRecords object to be removed
-        ResourceAllocation.findById(req.params._id).then(response =>{
-        console.log({
-            message:"Success, data found",
-            data:response
-        })
+        const response = await ResourceAllocation.findById(req.params._id)
+
         let records = response.allocationRecords
         records.splice(records.findIndex(obj => (obj.class==req.body.class)&&(obj.time==req.body.time)),1)
-        // Pass the allocationRecords object to be added
-        ResourceAllocation.findByIdAndUpdate(req.params._id,
-            { allocationRecords:records },
-            { new:true }).then(response2 =>{
+
+        try {
+            // Pass the allocationRecords object to be added
+            const response2 = await ResourceAllocation.findByIdAndUpdate(req.params._id,
+                { allocationRecords:records },
+                { new:true })
             res.json({
                 message:"Success, allocation removed",
                 data:response2
             })
-        }).catch(err =>{
+        } catch(err) {
             res.json({
                 message:"Fail, allocation not removed",
-                data:err
+                error:err
             })
+        }
+    } catch(err) {
+        res.json({
+            message:"Fail",
+            error:err
         })
-    }).catch(err =>{
-        console.log({
-            message:"Fail, data not found",
-            data:err
-        })
-    })
+    }
 }
 
 exports.getAllocationByMonth = async(req,res) => {
@@ -124,8 +123,8 @@ exports.getAllocationByMonth = async(req,res) => {
             data: records,
         });
     
-    }catch(err){
-        console.log(err)
+    } catch(err) {
+        //console.log(err)
         res.json({
             message:"fail",
             data:err
@@ -151,7 +150,7 @@ exports.getAllocationId = async (req,res) =>  {
         });
 
     } catch (err) {
-        console.log(err)
+        //console.log(err)
         res.json({  
             message:"fail",
             data:err
