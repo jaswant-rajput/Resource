@@ -1,76 +1,72 @@
 const Resource = require('../models/resourceSchema')
 
-exports.getAllResources = (req, res) => {
-    Resource.find().sort({resourceNo:1}).then(response => {
+exports.getAllResources = async(req, res) => {
+    try {
+        const resources = await Resource.find().sort({resourceNo:1})
         res.send({
-            response
+            success: true,
+            data: resources
         })
-    }).catch(err => {
+    } catch(err) {
         res.send({
             success: false,
             error: err
         })
-    })
+    }
 }
 
-exports.createResource = (req, res) => {
-    let resource = new Resource(req.body)
-    // add process to create respective allocation data
-    resource.save().then(response => {
+exports.createResource = async(req, res) => {
+    try {
+        let resource = new Resource(req.body)
+        // add process to create respective allocation data
+        const response = await resource.save()
         res.json({
             message: response,
             success: true
         })
-    }).catch(err => {
+    } catch(err) {
         res.json({
             success: false,
             error: err
         })
-    })
+    }
 }
 
-exports.deleteResource = (req, res) => {
-    const resourceId = req.params._id;
-    // add process to delete respective allocation data
-    Resource.findByIdAndDelete(resourceId)
-        .then(deletedResource => {
-            if (!deletedResource) {
-                return res.status(404).json({ success: false, message: "Resource not found" });
-            }
-            res.json({ success: true, message: "Resource deleted successfully", deletedResource });
-        })
-        .catch(err => {
-            res.status(500).json({ success: false, error: 'error' });
-        });
+exports.deleteResource = async(req, res) => {
+    try {
+        // add process to delete respective allocation data
+        const deletedResource = await Resource.findByIdAndDelete(req.params._id)
+        if (!deletedResource) {
+            return res.status(404).json({ success: false, message: "Resource not found" });
+        }
+        res.json({ success: true, message: "Resource deleted successfully", data: deletedResource});
+    } catch(err) {
+        res.status(500).json({ success: false, error: err });
+    }
+}
+
+exports.getResourceById = async(req, res) => {
+    try {
+        const resource = Resource.findById(req.params._id)
+        if (!resource) {
+            return res.status(404).json({ success: false, message: "Resource not found" });
+        }
+        res.json({ success: true, data: resource});
+    } catch(err) {
+        res.status(500).json({ success: false, error: err});
+    }
 };
 
-exports.getResourceById = (req, res) => {
-    const resourceId = req.params._id;
+exports.updateResource = async(req, res) => {
+    try {
+        const updateData = req.body;
 
-    Resource.findById(resourceId)
-        .then(resource => {
-            if (!resource) {
-                return res.status(404).json({ success: false, message: "Resource not found" });
-            }
-            res.json({ success: true, resource });
-        })
-        .catch(err => {
-            res.status(500).json({ success: false, error: 'error' });
-        });
-};
-
-exports.updateResource = (req, res) => {
-    const resourceId = req.params._id;
-    const updateData = req.body;
-    
-    Resource.findByIdAndUpdate(resourceId, updateData, { new: true })
-        .then(updatedResource => {
-            if (!updatedResource) {
-                return res.status(404).json({ success: false, message: "Resource not found"});
-            }
-            res.json({ success: true, message: "Resource updated successfully", updatedResource});
-        })
-        .catch(err => {
-            res.status(500).json({ success: false, error: err})
-        })
+        const updatedResource = await Resource.findByIdAndUpdate(req.params._id, updateData, { new: true })
+        if (!updatedResource) {
+            return res.status(404).json({ success: false, message: "Resource not found"});
+        }
+        res.json({ success: true, message: "Resource updated successfully", data: updatedResource});
+    } catch(err) {
+        res.status(500).json({ success: false, error: err})
+    }
 }
