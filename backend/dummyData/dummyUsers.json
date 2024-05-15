@@ -1,0 +1,82 @@
+[
+	{
+		"firstName": "John",
+		"middleName": "",
+		"lastName": "Doe",
+		"email": "john@gmail.com",
+		"password": "password",
+		"role": 0
+	},
+	{
+		"firstName": "Jane",
+		"middleName": "",
+		"lastName": "Smith",
+		"email": "jane@gmail.com",
+		"password": "password",
+		"role": 0
+	},
+	{
+		"firstName": "Michael",
+		"middleName": "",
+		"lastName": "Johnson",
+		"email": "michael@gmail.com",
+		"password": "password",
+		"role": 0
+	},
+	{
+		"firstName": "Emily",
+		"middleName": "",
+		"lastName": "Davis",
+		"email": "emily@gmail.com",
+		"password": "password",
+		"role": 0
+	},
+	{
+		"firstName": "Chris",
+		"middleName": "",
+		"lastName": "Wilson",
+		"email": "chris@gmail.com",
+		"password": "password",
+		"role": 0
+	},
+	{
+		"firstName": "Alex",
+		"middleName": "",
+		"lastName": "Brown",
+		"email": "alex@gmail.com",
+		"password": "password",
+		"role": 0
+	},
+	{
+		"firstName": "Jessica",
+		"middleName": "",
+		"lastName": "Martinez",
+		"email": "jessica@gmail.com",
+		"password": "password",
+		"role": 0
+	},
+	{
+		"firstName": "David",
+		"middleName": "",
+		"lastName": "Anderson",
+		"email": "david@gmail.com",
+		"password": "password",
+		"role": 0
+	},
+	{
+		"firstName": "Sarah",
+		"middleName": "",
+		"lastName": "Garcia",
+		"email": "sarah@gmail.com",
+		"password": "password",
+		"role": 1
+	},
+	{
+		"firstName": "Ryan",
+		"middleName": "",
+		"lastName": "Taylor",
+		"email": "ryan@gmail.com",
+		"password": "password",
+		"role": 1
+	}
+]
