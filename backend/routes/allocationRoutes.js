@@ -10,7 +10,7 @@ const {
 
 const router = express.Router();
 
-router.post('/set-default-allocation/:resourceObjectId', setDefaultAllocation);
+router.patch('/set-default-allocation/:resourceObjectId', setDefaultAllocation);
 router.get('/get-default-allocation/:_id',getDefaultAllocation);
 router.patch('/add-allocation/:_id', addAllocation);
 router.delete('/remove-allocation/:_id', removeAllocation);
