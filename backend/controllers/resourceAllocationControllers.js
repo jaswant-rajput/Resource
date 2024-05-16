@@ -157,3 +157,34 @@ exports.getAllocationId = async (req,res) =>  {
         })
     }
 }
+// to use in resourceControllers
+exports.createAllocationData = async(resource) => {
+    const now = new Date();
+	const year = now.getFullYear();
+	const month = now.getMonth();
+	const startDate = new Date(year, month, 2);
+	const endDate = new Date(year, month + 1, 1);
+	const dates = [];
+
+	while (startDate <= endDate) {
+		dates.push(new Date(startDate));
+		startDate.setDate(startDate.getDate() + 1);
+	}
+
+	const allocations = dates.map(day => {
+        return {
+            resourceObjectId:resource._id,
+            startdate:day,
+            defaultAllocation: [],
+            allocationRecords: []
+        }
+    })
+
+	await ResourceAllocation.create(allocations)
+	console.log("Allocation data created")
+}
+
+exports.removeAllocationData = async(resourceId) => {
+	await ResourceAllocation.deleteMany({resourceObjectId:resourceId})
+	console.log("Allocation data removed")
+}

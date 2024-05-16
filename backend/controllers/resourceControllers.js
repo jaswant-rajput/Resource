@@ -1,4 +1,5 @@
 const Resource = require('../models/resourceSchema')
+const { createAllocationData, removeAllocationData } = require('./resourceAllocationControllers')
 
 exports.getAllResources = async(req, res) => {
     try {
@@ -18,10 +19,10 @@ exports.getAllResources = async(req, res) => {
 exports.createResource = async(req, res) => {
     try {
         let resource = new Resource(req.body)
-        // add process to create respective allocation data
         const response = await resource.save()
+        createAllocationData(response)
         res.json({
-            message: response,
+            data: response,
             success: true
         })
     } catch(err) {
@@ -34,11 +35,11 @@ exports.createResource = async(req, res) => {
 
 exports.deleteResource = async(req, res) => {
     try {
-        // add process to delete respective allocation data
         const deletedResource = await Resource.findByIdAndDelete(req.params._id)
         if (!deletedResource) {
             return res.status(404).json({ success: false, message: "Resource not found" });
         }
+        removeAllocationData(req.params._id)
         res.json({ success: true, message: "Resource deleted successfully", data: deletedResource});
     } catch(err) {
         res.status(500).json({ success: false, error: err });
@@ -57,7 +58,7 @@ exports.getResourceById = async(req, res) => {
     }
 };
 
-exports.updateResource = async(req, res) => {
+/*exports.updateResource = async(req, res) => {
     try {
         const updateData = req.body;
 
@@ -69,4 +70,4 @@ exports.updateResource = async(req, res) => {
     } catch(err) {
         res.status(500).json({ success: false, error: err})
     }
-}
+}*/
