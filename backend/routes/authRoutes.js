@@ -1,5 +1,6 @@
 const express = require('express')
-const { register,
+const {
+    register,
     login,
     forgotPassword,
     resetPassword,
