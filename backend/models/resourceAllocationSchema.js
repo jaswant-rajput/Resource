@@ -13,7 +13,7 @@ const resourceAllocationSchema = new mongoose.Schema({
 	defaultAllocation: [{
 		class: {
 			type: String,
-			trim:true
+			trim: true
 		},
 		time: {
 			type: String
@@ -22,11 +22,11 @@ const resourceAllocationSchema = new mongoose.Schema({
   	allocationRecords: [{
 		class: {
 			type: String,
-			trim:true	
+			trim: true	
 		},
 		description: {
 			type: String,
-			trim:true
+			trim: true
 		},
 		time: {
 			type: String

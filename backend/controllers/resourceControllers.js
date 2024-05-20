@@ -3,7 +3,7 @@ const { createAllocationData, removeAllocationData } = require('./resourceAlloca
 
 exports.getAllResources = async(req, res) => {
     try {
-        const resources = await Resource.find().sort({resourceNo:1})
+        const resources = await Resource.find().sort({ resourceNo: 1 })
         res.send({
             success: true,
             data: resources
