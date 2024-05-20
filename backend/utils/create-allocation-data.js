@@ -29,8 +29,8 @@ const makeAllocationData = (resource) => {
 
     return dates.map(day => {
         return {
-            resourceObjectId:resource._id,
-            startdate:day,
+            resourceObjectId: resource._id,
+            startdate: day,
             defaultAllocation: [],
             allocationRecords: []
         }
