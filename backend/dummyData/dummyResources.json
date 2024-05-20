@@ -1,42 +1,42 @@
 [
     {
-        "resourceNo":501,
-        "resourceType":"classroom"
+        "resourceNo": 501,
+        "resourceType": "classroom"
     },
     {
-        "resourceNo":502,
-        "resourceType":"classroom"
+        "resourceNo": 502,
+        "resourceType": "classroom"
     },
     {
-        "resourceNo":503,
-        "resourceType":"classroom"
+        "resourceNo": 503,
+        "resourceType": "classroom"
     },
     {
-        "resourceNo":504,
-        "resourceType":"classroom"
+        "resourceNo": 504,
+        "resourceType": "classroom"
     },
     {
-        "resourceNo":505,
-        "resourceType":"classroom"
+        "resourceNo": 505,
+        "resourceType": "classroom"
     },
     {
-        "resourceNo":506,
-        "resourceType":"classroom"
+        "resourceNo": 506,
+        "resourceType": "classroom"
     },
     {
-        "resourceNo":507,
-        "resourceType":"classroom"
+        "resourceNo": 507,
+        "resourceType": "classroom"
     },
     {
-        "resourceNo":1,
-        "resourceType":"lab"
+        "resourceNo": 1,
+        "resourceType": "lab"
     },
     {
-        "resourceNo":2,
-        "resourceType":"lab"
+        "resourceNo": 2,
+        "resourceType": "lab"
     },
     {
-        "resourceNo":3,
-        "resourceType":"lab"
+        "resourceNo": 3,
+        "resourceType": "lab"
     }
 ]
