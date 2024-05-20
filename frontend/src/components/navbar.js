@@ -1,146 +1,230 @@
 import * as React from 'react';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import Button from '@mui/material/Button';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import { getAllResources } from '../actions/resourceAllocationActions';
+import { createResource } from '../actions/resourceActions';
+import { useEffect, useState } from 'react';
 
 export default function ComboBox() {
+  const [resources, setResources] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [resourceOpen, setResourceOpen] = useState(false);
+  const [allocationOpen, setAllocationOpen] = useState(false);
+  const [singleDayOpen, setSingleDayOpen] = useState(false);
+  const [multipleDayOpen, setMultipleDayOpen] = useState(false);
+  const [defaultAllocationOpen, setDefaultAllocationOpen] = useState(false);
+  const [resourceType, setResourceType] = useState('');
+  const [resourceNo, setResourceNo] = useState('');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getAllResources();
+        console.log('data from getAllResources', response);
+
+        if (response && response.data) {
+          const transformedData = response.data.map(resource => ({
+            label: `${resource.resourceType} - ${resource.resourceNo}`,
+            resourceNo: resource.resourceNo,
+            resourceType: resource.resourceType
+          }));
+          setResources(transformedData);
+        } else {
+          console.error('Invalid data format:', response);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleResourceOpen = () => {
+    setResourceOpen(true);
+    setOpen(false); // Close the first modal
+  };
+
+  const handleResourceClose = () => {
+    setResourceOpen(false);
+  };
+
+  const handleAllocationOpen = () => {
+    setAllocationOpen(true);
+    setOpen(false); // Close the first modal
+  };
+
+  const handleAllocationClose = () => {
+    setAllocationOpen(false);
+  };
+
+  const handleSingleDayOpen = () => {
+    setSingleDayOpen(true);
+    setAllocationOpen(false);
+  };
+
+  const handleSingleDayClose = () => {
+    setSingleDayOpen(false);
+  };
+
+  const handleMultipleDayOpen = () => {
+    setMultipleDayOpen(true);
+    setAllocationOpen(false);
+  };
+
+  const handleMultipleDayClose = () => {
+    setMultipleDayOpen(false);
+  };
+
+  const handleDefaultAllocationOpen = () => {
+    setDefaultAllocationOpen(true);
+    setAllocationOpen(false);
+  };
+
+  const handleDefaultAllocationClose = () => {
+    setDefaultAllocationOpen(false);
+  };
+
+  const handleResourceTypeChange = (event) => {
+    setResourceType(event.target.value);
+  };
+
+
+  const handleResourceCreateSave = () => {
+    console.log(resourceType);
+    console.log(resourceNo);
+
+    createResource({resourceNo,resourceType}).then(data => {
+      console.log('Successful resource creation',data)
+    }).catch(err =>{
+      console.log('error in creating resource',err)
+    });
+  };
+
   return (
     <div>
-    <Autocomplete
-      disablePortal
-      id="combo-box-demo"
-      options={top100Films}
-      //sx={{ width:  }}
-      sx={{marginRight: "0.5vw"}}
-      renderInput={(params) => <TextField {...params} label="Movie" />}
-    />
+      <div>
+        <button type="button" className="btn btn-primary rounded-pill" style={{ width: '16vw', marginBottom: '1.2vw', marginTop: '0.8vw' }} onClick={handleOpen}>
+          Create
+        </button>
+      </div>
+
+      <Autocomplete disablePortal id="combo-box-demo" options={resources} sx={{ marginRight: '0.5vw', marginLeft: '0.5vw' }}
+        renderInput={(params) => <TextField {...params} label="Resources" />}
+      />
+
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Select an Option</DialogTitle>
+        <DialogContent>
+          <ul>
+            <li>
+              <Button onClick={handleResourceOpen}>Resource</Button>
+            </li>
+            <br></br>
+            <li>
+              <Button onClick={handleAllocationOpen}>Allocation</Button>
+            </li>
+          </ul>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={resourceOpen} onClose={handleResourceClose}>
+        <DialogTitle>Resource Modal</DialogTitle>
+        <DialogContent>
+          <Select value={resourceType} onChange={handleResourceTypeChange} displayEmpty fullWidth>
+            <MenuItem value="" disabled>
+              Resource Type
+            </MenuItem>
+            <MenuItem value="classroom">Classroom</MenuItem>
+            <MenuItem value="lab">Lab</MenuItem>
+            <MenuItem value="seminar hall">Seminar Hall</MenuItem>
+          </Select>
+          <br />
+          <TextField
+            margin="dense"
+            label="Resource Number"
+            type="text"
+            fullWidth
+            variant="outlined"
+            onChange={(e) => setResourceNo(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleResourceCreateSave}>Save</Button>
+          <Button onClick={handleResourceClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={allocationOpen} onClose={handleAllocationClose}>
+        <DialogTitle>Allocation Modal</DialogTitle>
+        <DialogContent>
+          <ul>
+            <li>
+              <Button onClick={handleSingleDayOpen}>Single Day Allocation</Button>
+            </li>
+            <br></br>
+            <li>
+              <Button onClick={handleMultipleDayOpen}>Multiple Day Allocation</Button>
+            </li>
+            <br></br>
+            <li>
+              <Button onClick={handleDefaultAllocationOpen}>Set Default Allocation</Button>
+            </li>
+          </ul>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleAllocationClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={singleDayOpen} onClose={handleSingleDayClose}>
+        <DialogTitle>Single Day Allocation</DialogTitle>
+        <DialogContent>
+          {/* Add your single day allocation components here */}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleSingleDayClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={multipleDayOpen} onClose={handleMultipleDayClose}>
+        <DialogTitle>Multiple Day Allocation</DialogTitle>
+        <DialogContent>
+          {/* Add your multiple day allocation components here */}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleMultipleDayClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={defaultAllocationOpen} onClose={handleDefaultAllocationClose}>
+        <DialogTitle>Set Default Allocation</DialogTitle>
+        <DialogContent>
+          {/* Add your default allocation components here */}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDefaultAllocationClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
 
-// Top 100 films as rated by IMDb users. http://www.imdb.com/chart/top
-const top100Films = [
-  { label: 'The Shawshank Redemption', year: 1994 },
-  { label: 'The Godfather', year: 1972 },
-  { label: 'The Godfather: Part II', year: 1974 },
-  { label: 'The Dark Knight', year: 2008 },
-  { label: '12 Angry Men', year: 1957 },
-  { label: "Schindler's List", year: 1993 },
-  { label: 'Pulp Fiction', year: 1994 },
-  {
-    label: 'The Lord of the Rings: The Return of the King',
-    year: 2003,
-  },
-  { label: 'The Good, the Bad and the Ugly', year: 1966 },
-  { label: 'Fight Club', year: 1999 },
-  {
-    label: 'The Lord of the Rings: The Fellowship of the Ring',
-    year: 2001,
-  },
-  {
-    label: 'Star Wars: Episode V - The Empire Strikes Back',
-    year: 1980,
-  },
-  { label: 'Forrest Gump', year: 1994 },
-  { label: 'Inception', year: 2010 },
-  {
-    label: 'The Lord of the Rings: The Two Towers',
-    year: 2002,
-  },
-  { label: "One Flew Over the Cuckoo's Nest", year: 1975 },
-  { label: 'Goodfellas', year: 1990 },
-  { label: 'The Matrix', year: 1999 },
-  { label: 'Seven Samurai', year: 1954 },
-  {
-    label: 'Star Wars: Episode IV - A New Hope',
-    year: 1977,
-  },
-  { label: 'City of God', year: 2002 },
-  { label: 'Se7en', year: 1995 },
-  { label: 'The Silence of the Lambs', year: 1991 },
-  { label: "It's a Wonderful Life", year: 1946 },
-  { label: 'Life Is Beautiful', year: 1997 },
-  { label: 'The Usual Suspects', year: 1995 },
-  { label: 'Léon: The Professional', year: 1994 },
-  { label: 'Spirited Away', year: 2001 },
-  { label: 'Saving Private Ryan', year: 1998 },
-  { label: 'Once Upon a Time in the West', year: 1968 },
-  { label: 'American History X', year: 1998 },
-  { label: 'Interstellar', year: 2014 },
-  { label: 'Casablanca', year: 1942 },
-  { label: 'City Lights', year: 1931 },
-  { label: 'Psycho', year: 1960 },
-  { label: 'The Green Mile', year: 1999 },
-  { label: 'The Intouchables', year: 2011 },
-  { label: 'Modern Times', year: 1936 },
-  { label: 'Raiders of the Lost Ark', year: 1981 },
-  { label: 'Rear Window', year: 1954 },
-  { label: 'The Pianist', year: 2002 },
-  { label: 'The Departed', year: 2006 },
-  { label: 'Terminator 2: Judgment Day', year: 1991 },
-  { label: 'Back to the Future', year: 1985 },
-  { label: 'Whiplash', year: 2014 },
-  { label: 'Gladiator', year: 2000 },
-  { label: 'Memento', year: 2000 },
-  { label: 'The Prestige', year: 2006 },
-  { label: 'The Lion King', year: 1994 },
-  { label: 'Apocalypse Now', year: 1979 },
-  { label: 'Alien', year: 1979 },
-  { label: 'Sunset Boulevard', year: 1950 },
-  {
-    label: 'Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb',
-    year: 1964,
-  },
-  { label: 'The Great Dictator', year: 1940 },
-  { label: 'Cinema Paradiso', year: 1988 },
-  { label: 'The Lives of Others', year: 2006 },
-  { label: 'Grave of the Fireflies', year: 1988 },
-  { label: 'Paths of Glory', year: 1957 },
-  { label: 'Django Unchained', year: 2012 },
-  { label: 'The Shining', year: 1980 },
-  { label: 'WALL·E', year: 2008 },
-  { label: 'American Beauty', year: 1999 },
-  { label: 'The Dark Knight Rises', year: 2012 },
-  { label: 'Princess Mononoke', year: 1997 },
-  { label: 'Aliens', year: 1986 },
-  { label: 'Oldboy', year: 2003 },
-  { label: 'Once Upon a Time in America', year: 1984 },
-  { label: 'Witness for the Prosecution', year: 1957 },
-  { label: 'Das Boot', year: 1981 },
-  { label: 'Citizen Kane', year: 1941 },
-  { label: 'North by Northwest', year: 1959 },
-  { label: 'Vertigo', year: 1958 },
-  {
-    label: 'Star Wars: Episode VI - Return of the Jedi',
-    year: 1983,
-  },
-  { label: 'Reservoir Dogs', year: 1992 },
-  { label: 'Braveheart', year: 1995 },
-  { label: 'M', year: 1931 },
-  { label: 'Requiem for a Dream', year: 2000 },
-  { label: 'Amélie', year: 2001 },
-  { label: 'A Clockwork Orange', year: 1971 },
-  { label: 'Like Stars on Earth', year: 2007 },
-  { label: 'Taxi Driver', year: 1976 },
-  { label: 'Lawrence of Arabia', year: 1962 },
-  { label: 'Double Indemnity', year: 1944 },
-  {
-    label: 'Eternal Sunshine of the Spotless Mind',
-    year: 2004,
-  },
-  { label: 'Amadeus', year: 1984 },
-  { label: 'To Kill a Mockingbird', year: 1962 },
-  { label: 'Toy Story 3', year: 2010 },
-  { label: 'Logan', year: 2017 },
-  { label: 'Full Metal Jacket', year: 1987 },
-  { label: 'Dangal', year: 2016 },
-  { label: 'The Sting', year: 1973 },
-  { label: '2001: A Space Odyssey', year: 1968 },
-  { label: "Singin' in the Rain", year: 1952 },
-  { label: 'Toy Story', year: 1995 },
-  { label: 'Bicycle Thieves', year: 1948 },
-  { label: 'The Kid', year: 1921 },
-  { label: 'Inglourious Basterds', year: 2009 },
-  { label: 'Snatch', year: 2000 },
-  { label: '3 Idiots', year: 2009 },
-  { label: 'Monty Python and the Holy Grail', year: 1975 },
-];
