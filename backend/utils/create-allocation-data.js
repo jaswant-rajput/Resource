@@ -12,7 +12,7 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
   console.log("Database Connection Error: ", err)
 })
 
-// Adds date of current month for all allocation objects
+//Adds date of current month for all allocation objects
 const makeAllocationData = (resource) => {
 	const now = new Date();
 	const year = now.getFullYear();
@@ -20,6 +20,7 @@ const makeAllocationData = (resource) => {
 	const startDate = new Date(year, month, 2);
 	const endDate = new Date(year, month + 1, 1);
 	const dates = [];
+
 
 	while (startDate <= endDate) {
 		dates.push(new Date(startDate));
@@ -35,6 +36,7 @@ const makeAllocationData = (resource) => {
         }
     })
 }
+
 
 // Creates and inserts allocation data for all available resources
 const createAllocationData = async() => {
