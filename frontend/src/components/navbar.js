@@ -6,44 +6,53 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
-import { getAllResources } from '../actions/resourceAllocationActions';
-import { createResource } from '../actions/resourceActions';
+import Alert from '@mui/material/Alert';
+import MenuItem from '@mui/material/MenuItem';
+import { getAllResources ,createResource } from '../actions/resourceActions';
 import { useEffect, useState } from 'react';
 
-export default function ComboBox() {
-  const [resources, setResources] = useState([]);
+const Navbar=({ onResourceSelect }) => {
   const [open, setOpen] = useState(false);
   const [resourceOpen, setResourceOpen] = useState(false);
   const [allocationOpen, setAllocationOpen] = useState(false);
   const [singleDayOpen, setSingleDayOpen] = useState(false);
   const [multipleDayOpen, setMultipleDayOpen] = useState(false);
   const [defaultAllocationOpen, setDefaultAllocationOpen] = useState(false);
+
+  const [resources, setResources] = useState([]);
   const [resourceType, setResourceType] = useState('');
   const [resourceNo, setResourceNo] = useState('');
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await getAllResources();
-        console.log('data from getAllResources', response);
 
-        if (response && response.data) {
-          const transformedData = response.data.map(resource => ({
-            label: `${resource.resourceType} - ${resource.resourceNo}`,
-            resourceNo: resource.resourceNo,
-            resourceType: resource.resourceType
-          }));
-          setResources(transformedData);
-        } else {
-          console.error('Invalid data format:', response);
-        }
-      } catch (error) {
-        console.log(error);
+
+  const [alertMessage, setAlertMessage] = useState('');
+  const [severity, setSeverity] = useState('');
+  const [alertOpen, setAlertOpen] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      const response = await getAllResources();
+      console.log('data from getAllResources', response);
+
+      if (response && response.data) {
+        const transformedData = response.data.map(resource => ({
+          label: `${resource.resourceType} - ${resource.resourceNo}`,
+          resourceNo: resource.resourceNo,
+          resourceType: resource.resourceType,
+          _id : resource._id
+        }));
+        setResources(transformedData); // Make sure this updates the state correctly
+      } else {
+        console.error('Invalid data format:', response);
       }
-    };
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -104,17 +113,56 @@ export default function ComboBox() {
     setResourceType(event.target.value);
   };
 
-
-  const handleResourceCreateSave = () => {
-    console.log(resourceType);
-    console.log(resourceNo);
-
-    createResource({resourceNo,resourceType}).then(data => {
-      console.log('Successful resource creation',data)
-    }).catch(err =>{
-      console.log('error in creating resource',err)
-    });
+  const handleAlertClose = () => {
+    setAlertOpen(false);
   };
+
+  const triggerAlert = (message,severity) => {
+    setAlertMessage(message);
+    setSeverity(severity);
+    setAlertOpen(true);
+  };
+
+  const logSelectedResourceId = (resource) => {
+    if (resource) {
+      console.log('Selected Resource ID:', resource._id);
+     onResourceSelect(resource._id);
+    } else {
+      console.log('No resource selected');
+    }
+  };
+
+  const handleResourceCreateSave = async () => {
+    console.log('Checking if resource exists:', { resourceNo, resourceType });
+
+    await fetchData(); // Ensure we have the latest data
+
+    const resourceExists = resources.some(
+      resource => resource.resourceNo.toString() === resourceNo.toString() && resource.resourceType === resourceType
+    );
+    console.log('resourceExists is', resourceExists, 'and its type is', typeof resourceExists);
+
+    if (resourceExists) {
+      console.log('Resource combination exists:', { resourceNo, resourceType });
+      triggerAlert('This resource combination already exists.', 'error');
+      return;
+    }
+
+    try {
+      const data = await createResource({ resourceNo, resourceType });
+      console.log('Successful resource creation', data);
+      triggerAlert('Successfully Created Resource','success')
+      fetchData(); 
+      handleResourceClose();
+    } catch (err) {
+      console.log('Error in creating resource', err);
+      triggerAlert('Failed to create resource.');
+    }
+
+    setResourceType('');
+    setResourceNo('');
+  };
+
 
   return (
     <div>
@@ -124,8 +172,14 @@ export default function ComboBox() {
         </button>
       </div>
 
-      <Autocomplete disablePortal id="combo-box-demo" options={resources} sx={{ marginRight: '0.5vw', marginLeft: '0.5vw' }}
+      <Autocomplete
+        disablePortal
+        id="combo-box-demo"
+        options={resources}
+        getOptionLabel={(option) => `${option.resourceType} - ${option.resourceNo}`}
+        sx={{ marginRight: '0.5vw', marginLeft: '0.5vw' }}
         renderInput={(params) => <TextField {...params} label="Resources" />}
+        onChange={(event, value) => logSelectedResourceId(value)}
       />
 
       <Dialog open={open} onClose={handleClose}>
@@ -137,7 +191,7 @@ export default function ComboBox() {
             </li>
             <br></br>
             <li>
-              <Button onClick={handleAllocationOpen}>Allocation</Button>
+              <Button onClick={handleAllocationOpen}>Event</Button>
             </li>
           </ul>
         </DialogContent>
@@ -224,7 +278,19 @@ export default function ComboBox() {
           <Button onClick={handleDefaultAllocationClose}>Close</Button>
         </DialogActions>
       </Dialog>
+
+
+
+      {/*alert */}
+      <Dialog open={alertOpen} onClose={handleAlertClose}>
+        <Alert severity={severity} onClose={handleAlertClose}>
+          {alertMessage}
+        </Alert>
+      </Dialog>
     </div>
   );
+
 }
 
+
+export default Navbar

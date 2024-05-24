@@ -109,7 +109,7 @@ exports.getAllocationByMonth = async(req,res) => {
         const startDate = new Date();
         const endDate = new Date();
         
-        startDate.setFullYear(year, month - 1, 1);
+        startDate.setFullYear(year, month - 1, 0);
         endDate.setFullYear(year, month, 0);
         endDate.setHours(23, 59, 59, 999);
         
@@ -164,7 +164,7 @@ exports.createAllocationData = async(resource) => {
     const now = new Date();
 	const year = now.getFullYear();
 	const month = now.getMonth();
-	const startDate = new Date(year, month, 2);
+	const startDate = new Date(year, month, 1);
 	const endDate = new Date(year, month + 1, 1);
 	const dates = [];
 

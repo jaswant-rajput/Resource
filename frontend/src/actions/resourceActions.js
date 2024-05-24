@@ -22,3 +22,17 @@ export const createResource = (resourceData) => {
       throw err; // Rethrow error for caller to handle
     });
 };
+
+
+export const getAllResources = () => {
+  return fetch(`${ENDPOINT_URL}/get-all-resources`, {
+      method: "GET",
+      headers: {
+          Accept: 'application/json',
+          'Content-type': 'application/json'
+      }
+  })
+      .then(response => response.json())
+      .catch(err => console.log(err))
+}
+
