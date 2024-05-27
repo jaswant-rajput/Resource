@@ -98,8 +98,8 @@ import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 const Calendar = ({ selectedResourceId }) => {
     const [allocationData, setAllocationData] = useState([]);
     const [open, setOpen] = useState(false);
-    const [selectedAllocation, setSelectedAllocation] = useState({});
-
+    const [selectedDateAllocations, setSelectedDateAllocations] = useState([]);
+    const [selectedAllocation, setSelectedAllocation] = useState(null);
 
     useEffect(() => {
         if (selectedResourceId) {
@@ -124,35 +124,50 @@ const Calendar = ({ selectedResourceId }) => {
     };
 
 
-    const handleSingleAllocation = (allocation) => {
-        setSelectedAllocation(allocation);
+    const handleSingleAllocation = (dateAllocations) => {
+        setSelectedDateAllocations(dateAllocations);
         setOpen(true);
     };
 
     const handleClose = () => {
         setOpen(false);
-        setSelectedAllocation({});
+        setSelectedDateAllocations([]);
     };
 
-    const handleDeleteAllocation = () => {
-        console.log('Deleting allocation:', selectedAllocation);
-        handleClose();
+    const handleDeleteAllocation = (allocation) => {
+        console.log('Deleting allocation:', allocation);
+        // Perform the deletion logic here (e.g., update the state or make an API call)
+        // For now, just filter out the deleted allocation from the selectedDateAllocations state
+        const updatedAllocations = selectedDateAllocations.filter(item => item._id !== allocation._id);
+        setSelectedDateAllocations(updatedAllocations);
+        setAllocationData(allocationData.map(data => {
+            if (data.startdate === allocation.startdate) {
+                return {
+                    ...data,
+                    allocationRecords: data.allocationRecords.filter(record => record._id !== allocation._id)
+                };
+            }
+            return data;
+        }));
+        setSelectedAllocation(null);
+        setOpen(updatedAllocations.length > 0); // Close dialog if no allocations left
     };
 
 
     return (
         <div>
-            {/* <p>Selected Resource Id is : {selectedResourceId}</p> */}
+            <p>Selected Resource Id is : {selectedResourceId}</p>
             <div className='col-10'>
-                <div className='grid-container'>
+                <div className='grid-container' >
                     {allocationData.length > 0 ? (
                         allocationData.map((item, i) => (
-                            <div key={i} className='grid-cell border-secondary' style={{ overflowY: "scroll", scrollbarWidth: "none" }}>
-                                <h5 style={{textAlign:"center"}}>{i + 1}</h5>
-                                {/* <div>{new Date(item.startdate).toLocaleDateString()}</div> */}
+                            <div key={i} className='grid-cell border border-secondary' onClick={() => handleSingleAllocation(item.allocationRecords)} style={{ overflowY: "scroll", scrollbarWidth: "none" }}>
+                                <h5 style={{ textAlign: "center" }}>{i + 1}</h5>
                                 <div>
                                     {item.allocationRecords.map((record, index) => (
-                                        <div key={index} className='border border-primary ' style={{ marginBottom: "0.5vh" }} onClick={() => handleSingleAllocation(record)}>{record.class}</div>
+                                        <div key={index} className='border border-primary rounded'style={{ marginBottom: "0.5vh", position: "relative", padding: "0.5vw",marginRight:"0.5vh",marginLeft:"0.5vh" }}>
+                                            {record.class}
+                                        </div>
                                     ))}
                                 </div>
                             </div>
@@ -162,22 +177,32 @@ const Calendar = ({ selectedResourceId }) => {
                     )}
                 </div>
             </div>
+
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle>
                     Allocation Details
-                    <IconButton aria-label="delete" onClick={handleDeleteAllocation} style={{ position: 'absolute', right: 8, top: 8 }}>
-                        <DeleteIcon style={{ color: 'blue' }} />
-                    </IconButton></DialogTitle>
+                </DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
-                        <strong>Description:</strong> {selectedAllocation.description}
-                    </DialogContentText>
-                    <DialogContentText>
-                        <strong>Class:</strong> {selectedAllocation.class}
-                    </DialogContentText>
-                    <DialogContentText>
-                        <strong>Time:</strong> {selectedAllocation.time}
-                    </DialogContentText>
+                    {selectedDateAllocations.map((allocation, index) => (
+                        <div key={index} className='border border-primary rounded' style={{ marginBottom: "1vh", position: "relative", padding: "2vw" }}>
+                            <IconButton
+                                aria-label="delete"
+                                onClick={() => handleDeleteAllocation(allocation)}
+                                style={{ position: 'absolute', right: -6, top: -3 }}
+                            >
+                                <DeleteIcon style={{ color: 'blue' }} />
+                            </IconButton>
+                            <DialogContentText>
+                                <strong>Description:</strong> {allocation.description}
+                            </DialogContentText>
+                            <DialogContentText>
+                                <strong>Class:</strong> {allocation.class}
+                            </DialogContentText>
+                            <DialogContentText>
+                                <strong>Time:</strong> {allocation.time}
+                            </DialogContentText>
+                        </div>
+                    ))}
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose} color="primary">
