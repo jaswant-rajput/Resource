@@ -18,7 +18,8 @@ import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { getAllResources, createResource } from '../actions/resourceActions';
 import { addAllocation, getAllocationByMonth } from '../actions/resourceAllocationActions';
 import { useEffect, useState } from 'react';
-const { ObjectId } = require('mongoose').Types;
+// const { ObjectId } = require('mongoose').Types;
+import { ObjectId } from 'bson';
 
 
 const Navbar = ({ onResourceSelect }) => {
@@ -251,13 +252,12 @@ const Navbar = ({ onResourceSelect }) => {
     console.log({
       resourceObjectId: resourceId,
       dates: [formattedDate],
-      allocation: {
+      allocation: {                            
         class: classInput,
         description: description,
         time: tempformattedTime
       }
     });
-
     const allocationData = {
       resourceObjectId: resourceId,
       dates: [formattedDate],
@@ -268,13 +268,31 @@ const Navbar = ({ onResourceSelect }) => {
       }
     };
 
-    addAllocation(allocationData.allocationData)
+    addAllocation(JSON.stringify(allocationData))
       .then(response => {
         console.log('Response from add allocation', response);
       })
       .catch(err => {
         console.error('Failed to add allocation:', err);
       });
+
+   
+
+    // addAllocation( JSON.stringify({
+    //   resourceObjectId: objectId,
+    //   dates: [formattedDate],
+    //   allocation: {
+    //     class: classInput,
+    //     description: description,
+    //     time: tempformattedTime
+    //   }
+    // }) )
+    //   .then(response => {
+    //     console.log('Response from add allocation', response);
+    //   })
+    //   .catch(err => {
+    //     console.error('Failed to add allocation:', err);
+    //   });
 
     handleSingleDayClose();
   };
@@ -367,7 +385,7 @@ const Navbar = ({ onResourceSelect }) => {
       <Dialog open={singleDayOpen} onClose={handleSingleDayClose}>
         <DialogTitle>Single Day Event</DialogTitle>
         <DialogContent>
-          <p>Allocation is being changed for the {resourceType} : {resourceNo}</p>
+          <p>Allocation is being changed for {resourceType} : {resourceNo}</p>
           <TextField
             label="Date"
             type="date"
