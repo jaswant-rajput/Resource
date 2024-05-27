@@ -20,6 +20,8 @@ import { addAllocation, getAllocationByMonth } from '../actions/resourceAllocati
 import { useEffect, useState } from 'react';
 // const { ObjectId } = require('mongoose').Types;
 import { ObjectId } from 'bson';
+import { useRefresh } from './RefreshContext';
+
 
 
 const Navbar = ({ onResourceSelect }) => {
@@ -48,6 +50,9 @@ const Navbar = ({ onResourceSelect }) => {
   const [starttime, setStartTime] = useState('');
   const [endtime, setEndTime] = useState('');
   const [time, setTime] = useState('');
+
+  const { triggerRefresh } = useRefresh();
+
 
 
   const fetchData = async () => {
@@ -270,10 +275,13 @@ const Navbar = ({ onResourceSelect }) => {
 
     addAllocation(JSON.stringify(allocationData))
       .then(response => {
+        triggerRefresh();
         console.log('Response from add allocation', response);
+        triggerAlert('Successfully Created Allocation', 'success')
       })
       .catch(err => {
         console.error('Failed to add allocation:', err);
+        triggerAlert('Failed to create Allocation', 'error')
       });
 
    
@@ -425,6 +433,7 @@ const Navbar = ({ onResourceSelect }) => {
               <TimePicker
                 label="To Time"
                 fullWidth
+                style={{ width: '100%' }} 
                 onChange={(newTime) => setEndTime(newTime)}
               />
             </DemoContainer>

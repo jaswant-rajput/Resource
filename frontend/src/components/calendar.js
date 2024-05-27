@@ -93,6 +93,8 @@ import './calendar.css';
 import { getAllocationByMonth } from '../actions/resourceAllocationActions';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
+import { useRefresh } from './RefreshContext';
+
 
 
 const Calendar = ({ selectedResourceId }) => {
@@ -101,6 +103,9 @@ const Calendar = ({ selectedResourceId }) => {
     const [selectedDateAllocations, setSelectedDateAllocations] = useState([]);
     const [selectedAllocation, setSelectedAllocation] = useState(null);
 
+    const { refresh, resetRefresh } = useRefresh();
+
+
     useEffect(() => {
         if (selectedResourceId) {
             console.log("from calendar.js value is ", selectedResourceId);
@@ -108,6 +113,7 @@ const Calendar = ({ selectedResourceId }) => {
         }
     }, [selectedResourceId]);
 
+   
     const handleGetAllocationByMonth = (resourceId) => {
         getAllocationByMonth(resourceId, '2024', '05')
             .then((data) => {
@@ -122,6 +128,18 @@ const Calendar = ({ selectedResourceId }) => {
                 console.log(err);
             });
     };
+    useEffect(() => {
+        if (refresh) {
+            // Refresh your calendar here
+            console.log('Refreshing calendar...');
+            // Your calendar refresh logic
+
+            // After refreshing, reset the state
+            resetRefresh();
+            handleGetAllocationByMonth(selectedResourceId);
+        }
+    }, [refresh, resetRefresh,handleGetAllocationByMonth]);
+
 
 
     const handleSingleAllocation = (dateAllocations) => {
