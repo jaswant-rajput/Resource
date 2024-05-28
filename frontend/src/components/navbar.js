@@ -19,7 +19,7 @@ import { getAllResources, createResource } from '../actions/resourceActions';
 import { addAllocation, getAllocationByMonth } from '../actions/resourceAllocationActions';
 import { useEffect, useState } from 'react';
 // const { ObjectId } = require('mongoose').Types;
-import { ObjectId } from 'bson';
+//import { ObjectId } from 'bson';
 import { useRefresh } from './RefreshContext';
 
 
@@ -49,7 +49,6 @@ const Navbar = ({ onResourceSelect }) => {
   const [description, setDescription] = useState('');
   const [starttime, setStartTime] = useState('');
   const [endtime, setEndTime] = useState('');
-  const [time, setTime] = useState('');
 
   const { triggerRefresh } = useRefresh();
 
@@ -67,7 +66,7 @@ const Navbar = ({ onResourceSelect }) => {
           resourceType: resource.resourceType,
           _id: resource._id,
         }
-      ));
+        ));
         setResources(transformedData); // Make sure this updates the state correctly
       } else {
         console.error('Invalid data format:', response);
@@ -181,8 +180,7 @@ const Navbar = ({ onResourceSelect }) => {
     if (resource) {
       setResourceType(resource.resourceType);
       setResourceNo(resource.resourceNo);
-      // console.log("resource no",resourceNo)
-      // console.log('resource type',resourceType)
+
     }
   }
 
@@ -221,48 +219,39 @@ const Navbar = ({ onResourceSelect }) => {
   dayjs.extend(localizedFormat);
 
 
-  // const handleSingleDayAllocation = () => {
-  //   // Implement the logic to save the single day allocation
-  //   let temptime = `${starttime} - ${endtime}`;
-  //   const formattedDate = new Date(date).toISOString(); // Convert date string to ISO string format
+  const handleSingleDayAllocation = () => {
+    // Ensure starttime and endtime are dayjs instances
+    const start = dayjs(starttime);
+    const end = dayjs(endtime);
 
-  //   console.log("start time", starttime);
-  //   console.log('end time', endtime);
+    if (!start.isValid() || !end.isValid()) {
+      console.error('Invalid start time or end time');
+      triggerAlert('Invalid start time or end time', 'error');
+      return;
+    }
 
-  //   setTime(temptime);
-  //   console.log({
-  //     resourceType,
-  //     resourceNo,
-  //     dates: [formattedDate],
-  //     class: classInput,
-  //     description,
-  //     formattedtime
-  //   });
-  //   handleSingleDayClose();
-  // };
-
-  const handleSingleDayAllocation =  () => {
-    // Implement the logic to save the single day allocation
-    const formattedStartTime = starttime.format('h:mm A');
-    const formattedEndTime = endtime.format('h:mm A');
+    const formattedStartTime = start.format('h:mm A');
+    const formattedEndTime = end.format('h:mm A');
     const tempformattedTime = `${formattedStartTime} - ${formattedEndTime}`;
 
+    // Convert date string to a Date object
+    const parsedDate = new Date(date);
+
+    console.log('Date value:', parsedDate);
+    console.log('Date type:', typeof parsedDate);
+    console.log('Is date instance of Date:', parsedDate instanceof Date);
+    console.log('Is date NaN:', isNaN(parsedDate));
+
+    if (!(parsedDate instanceof Date) || isNaN(parsedDate)) {
+      console.error('Invalid date value');
+      triggerAlert('Invalid Date Value', 'error');
+      return;
+    }
+
     // Format the date to ISO string with timezone offset set to zero (UTC)
-    const formattedDate = new Date(date).toISOString();
+    const formattedDate = parsedDate.toISOString();
+    console.log('Formatted Date:', formattedDate);
 
-    setTime(tempformattedTime);
-    const objectId = new ObjectId(resourceId);
-    console.log("object id ",objectId)
-
-    console.log({
-      resourceObjectId: resourceId,
-      dates: [formattedDate],
-      allocation: {                            
-        class: classInput,
-        description: description,
-        time: tempformattedTime
-      }
-    });
     const allocationData = {
       resourceObjectId: resourceId,
       dates: [formattedDate],
@@ -273,48 +262,144 @@ const Navbar = ({ onResourceSelect }) => {
       }
     };
 
-    addAllocation(JSON.stringify(allocationData))
-      .then(response => {
-        triggerRefresh();
-        console.log('Response from add allocation', response);
-        triggerAlert('Successfully Created Allocation', 'success')
-      })
-      .catch(err => {
-        console.error('Failed to add allocation:', err);
-        triggerAlert('Failed to create Allocation', 'error')
-      });
+    if (resourceId && formattedDate && classInput && description && tempformattedTime) {
+      addAllocation(JSON.stringify(allocationData))
+        .then(response => {
+          triggerRefresh();
+          console.log('Response from add allocation', response);
+          triggerAlert('Successfully Created Allocation', 'success');
+          handleSingleDayClose();
+        })
+        .catch(err => {
+          console.error('Failed to add allocation:', err);
+          triggerAlert('Failed to create Allocation', 'error');
+        });
+    } else {
+      triggerAlert('Fill in All the fields', 'error');
+    }
 
-   
 
-    // addAllocation( JSON.stringify({
-    //   resourceObjectId: objectId,
-    //   dates: [formattedDate],
-    //   allocation: {
-    //     class: classInput,
-    //     description: description,
-    //     time: tempformattedTime
-    //   }
-    // }) )
-    //   .then(response => {
-    //     console.log('Response from add allocation', response);
-    //   })
-    //   .catch(err => {
-    //     console.error('Failed to add allocation:', err);
-    //   });
-
-    handleSingleDayClose();
   };
 
+
+  // const handleSingleDayAllocation = async () => {
+  //   // Ensure starttime and endtime are dayjs instances
+  //   const start = dayjs(starttime);
+  //   const end = dayjs(endtime);
+
+  //   if (!start.isValid() || !end.isValid()) {
+  //     console.error('Invalid start time or end time');
+  //     triggerAlert('Invalid start time or end time', 'error');
+  //     return;
+  //   }
+
+  //   const formattedStartTime = start.format('h:mm A');
+  //   const formattedEndTime = end.format('h:mm A');
+  //   const tempformattedTime = `${formattedStartTime} - ${formattedEndTime}`;
+
+  //   // Convert date string to a Date object
+  //   const parsedDate = new Date(date);
+
+  //   console.log('Date value:', parsedDate);
+  //   console.log('Date type:', typeof parsedDate);
+  //   console.log('Is date instance of Date:', parsedDate instanceof Date);
+  //   console.log('Is date NaN:', isNaN(parsedDate));
+
+  //   if (!(parsedDate instanceof Date) || isNaN(parsedDate)) {
+  //     console.error('Invalid date value');
+  //     triggerAlert('Invalid Date Value', 'error');
+  //     return;
+  //   }
+
+  //   // Format the date to ISO string with timezone offset set to zero (UTC)
+  //   const formattedDate = parsedDate.toISOString();
+  //   console.log('Formatted Date:', formattedDate);
+
+  //   // Extract year and month for getAllocationByMonth
+  //   const year = parsedDate.getFullYear();
+  //   const month = parsedDate.getMonth() + 1; // getMonth() is zero-based
+
+  //   // Fetch existing allocations for the month and resource
+  //   try {
+  //     const existingAllocations = await getAllocationByMonth(resourceId, year, month);
+  //     console.log('Existing allocations:', existingAllocations);
+
+  //     if (Array.isArray(existingAllocations)) {
+  //       // Check if there is any allocation for the selected date and time range
+  //       const allocationExists = existingAllocations.some(allocation => {
+  //         const allocationDate = new Date(allocation.dates[0]).toISOString().split('T')[0];
+  //         const selectedDate = formattedDate.split('T')[0];
+
+  //         if (allocationDate === selectedDate) {
+  //           const allocationStart = dayjs(allocation.allocation.time.split(' - ')[0], 'h:mm A');
+  //           const allocationEnd = dayjs(allocation.allocation.time.split(' - ')[1], 'h:mm A');
+
+  //           // Check for time overlap
+  //           return (start.isBefore(allocationEnd) && end.isAfter(allocationStart));
+  //         }
+  //         return false;
+  //       });
+
+  //       if (allocationExists) {
+  //         triggerAlert('Allocation already exists for the selected date and time', 'error');
+  //         return;
+  //       }
+  //     } else {
+  //       console.error('Invalid response format from getAllocationByMonth');
+  //       triggerAlert('Invalid response format from server', 'error');
+  //       return;
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching existing allocations:', error);
+  //     triggerAlert('Error fetching existing allocations', 'error');
+  //     return;
+  //   }
+
+  //   const allocationData = {
+  //     resourceObjectId: resourceId,
+  //     dates: [formattedDate],
+  //     allocation: {
+  //       class: classInput,
+  //       description: description,
+  //       time: tempformattedTime
+  //     }
+  //   };
+
+  //   if (resourceId && formattedDate && classInput && description && tempformattedTime) {
+  //     addAllocation(allocationData)
+  //       .then(response => {
+  //         triggerRefresh();
+  //         console.log('Response from add allocation', response);
+  //         triggerAlert('Successfully Created Allocation', 'success');
+  //       })
+  //       .catch(err => {
+  //         console.error('Failed to add allocation:', err);
+  //         triggerAlert('Failed to create Allocation', 'error');
+  //       });
+  //   } else {
+  //     triggerAlert('Fill in All the fields', 'error');
+  //   }
+
+  //   handleSingleDayClose();
+  // };
+
+
+
+
+
+
+
   return (
-    <div>
+    <div style={{ width: '17vw', marginRight: '1.7vw' }}>
       <div>
-        <button type="button" className="btn btn-primary rounded-pill" style={{ width: '16vw', marginBottom: '1.2vw', marginTop: '0.8vw' }} onClick={handleOpen}>
+        <button type="button" className="btn btn-primary rounded-pill" style={{ width: '17vw', marginBottom: '1.2vw', marginTop: '0.8vw', marginRight: '0.1vw' }} onClick={handleOpen}>
           Create
         </button>
       </div>
 
       <Autocomplete
         disablePortal
+        style={{borderColor: 'black'}}
         id="combo-box-demo"
         options={resources}
         getOptionLabel={(option) => `${option.resourceType} - ${option.resourceNo}`}
@@ -322,6 +407,17 @@ const Navbar = ({ onResourceSelect }) => {
         renderInput={(params) => <TextField {...params} label="Resources" />}
         onChange={(event, value) => handleCombinedChange(value)}
       />
+
+      <div style={{ width: '17vw', height: '61vh', marginTop: '2.1vh', overflowY: 'scroll',scrollbarWidth:'none' }} className='border border-secondary'>
+        {resources.map((resource, index) => (
+          <div key={resource._id} >
+            <div className='border border-primary p-1 m-2' onClick={()=>handleCombinedChange(resource)}>
+              <h6>{resource.resourceType} : {resource.resourceNo}</h6>
+            </div>
+          </div>
+        ))}
+      </div>
+
 
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Select an Option</DialogTitle>
@@ -394,50 +490,60 @@ const Navbar = ({ onResourceSelect }) => {
         <DialogTitle>Single Day Event</DialogTitle>
         <DialogContent>
           <p>Allocation is being changed for {resourceType} : {resourceNo}</p>
-          <TextField
-            label="Date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            fullWidth
-            margin="normal"
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            label="Class"
-            value={classInput}
-            onChange={(e) => setClassInput(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <TextField
+              label="Date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ shrink: true }}
+            />
+          </div>
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <TextField
+              label="Class"
+              value={classInput}
+              onChange={(e) => setClassInput(e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+          </div>
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <TextField
+              label="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+          </div>
 
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DemoContainer components={['TimePicker']}>
-              <TimePicker
-                label="From Time"
-                fullWidth
-                onChange={(newTime) => setStartTime(newTime)}
-              />
-            </DemoContainer>
-          </LocalizationProvider>
-
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DemoContainer components={['TimePicker']}>
-              <TimePicker
-                label="To Time"
-                fullWidth
-                style={{ width: '100%' }} 
-                onChange={(newTime) => setEndTime(newTime)}
-              />
-            </DemoContainer>
-          </LocalizationProvider>
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={['TimePicker']}>
+                <TimePicker
+                  label="From Time"
+                  fullWidth
+                  onChange={(newTime) => setStartTime(newTime)}
+                  margin="normal"
+                />
+              </DemoContainer>
+            </LocalizationProvider>
+          </div>
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={['TimePicker']}>
+                <TimePicker
+                  label="To Time"
+                  fullWidth
+                  margin="normal"
+                  onChange={(newTime) => setEndTime(newTime)}
+                />
+              </DemoContainer>
+            </LocalizationProvider>
+          </div>
 
 
         </DialogContent>

@@ -76,18 +76,28 @@ export const removeAllocation = (id, allocation) => {
 		})
 	})
 	.then(response => response.json())
-	.then(data => {
-		if (data.success) {
-			return data.status;
-		} else {
-			throw new Error(data.error);
-		}
-	})
 	.catch(err => {
 		console.error('Error removing allocation:', err);
 		throw err;
 	})
 }
+
+// export const removeAllocation = (data) => {
+// 	return fetch(`${ENDPOINT_URL}/remove-allocation`, {
+// 		method: "DELETE",
+// 		headers: {
+// 			Accept: 'application/json',
+// 			'Content-type': 'application/json'
+// 		},
+// 		body: data
+// 	})
+// 	.then(response => response.json())
+// 	.catch(err => {
+// 		console.error('Error removing allocation:', err);
+// 		throw err;
+// 	})
+// }
+
 
 export const setDefaultAllocation = (resourceObjectId, defaultAllocations) => {
 	return fetch(`${ENDPOINT_URL}/set-default-allocation/${resourceObjectId}`, {

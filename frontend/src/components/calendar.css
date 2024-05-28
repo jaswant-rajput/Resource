@@ -2,7 +2,7 @@
     display: grid;
     grid-template-columns: repeat(7,1fr);
     /* gap: 1vw; */
-    min-width: 76vw;
+    min-width: 81vw;
     
 }
 
