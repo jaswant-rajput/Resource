@@ -63,33 +63,17 @@ export const addAllocation = (data) => {
 	})
 }
 
-export const removeAllocation = (id, allocation) => {
-	return fetch(`${ENDPOINT_URL}/remove-allocation`, {
-		method: "DELETE",
-		headers: {
-			Accept: 'application/json',
-			'Content-type': 'application/json'
-		},
-		body: JSON.stringify({
-			_id: id,
-			allocation: allocation
-		})
-	})
-	.then(response => response.json())
-	.catch(err => {
-		console.error('Error removing allocation:', err);
-		throw err;
-	})
-}
-
-// export const removeAllocation = (data) => {
+// export const removeAllocation = (id, allocation) => {
 // 	return fetch(`${ENDPOINT_URL}/remove-allocation`, {
 // 		method: "DELETE",
 // 		headers: {
 // 			Accept: 'application/json',
 // 			'Content-type': 'application/json'
 // 		},
-// 		body: data
+// 		body: JSON.stringify({
+// 			_id: id,
+// 			allocation: allocation
+// 		})
 // 	})
 // 	.then(response => response.json())
 // 	.catch(err => {
@@ -97,6 +81,22 @@ export const removeAllocation = (id, allocation) => {
 // 		throw err;
 // 	})
 // }
+
+export const removeAllocation = (data) => {
+	return fetch(`${ENDPOINT_URL}/remove-allocation`, {
+		method: "DELETE",
+		headers: {
+			Accept: 'application/json',
+			'Content-type': 'application/json'
+		},
+		body: data
+	})
+	.then(response => response.json())
+	.catch(err => {
+		console.error('Error removing allocation:', err);
+		throw err;
+	})
+}
 
 
 export const setDefaultAllocation = (resourceObjectId, defaultAllocations) => {

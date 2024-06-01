@@ -1,7 +1,7 @@
 .grid-container{
     display: grid;
     grid-template-columns: repeat(7,1fr);
-    /* gap: 1vw; */
+/* gap: 1vw; */
     min-width: 81vw;
     
 }
@@ -14,3 +14,4 @@
     /* overflow-y: scroll; */
     height: 19vh;
 }
+

@@ -390,16 +390,15 @@ const Navbar = ({ onResourceSelect }) => {
 
 
   return (
-    <div style={{ width: '17vw', marginRight: '1.7vw' }}>
+    <div style={{ width: '16vw', marginRight: '1.7vw' }}>
       <div>
-        <button type="button" className="btn btn-primary rounded-pill" style={{ width: '17vw', marginBottom: '1.2vw', marginTop: '0.8vw', marginRight: '0.1vw' }} onClick={handleOpen}>
+        <button type="button" className="btn btn-primary rounded-pill" style={{ width: '16vw', marginBottom: '1.2vw', marginTop: '0.8vw', marginRight: '0.1vw' }} onClick={handleOpen}>
           Create
         </button>
       </div>
 
       <Autocomplete
         disablePortal
-        style={{borderColor: 'black'}}
         id="combo-box-demo"
         options={resources}
         getOptionLabel={(option) => `${option.resourceType} - ${option.resourceNo}`}
@@ -408,7 +407,7 @@ const Navbar = ({ onResourceSelect }) => {
         onChange={(event, value) => handleCombinedChange(value)}
       />
 
-      <div style={{ width: '17vw', height: '61vh', marginTop: '2.1vh', overflowY: 'scroll',scrollbarWidth:'none' }} className='border border-secondary'>
+      <div style={{ width: '16vw',marginRight:"1.7vw", height: '61vh', marginTop: '2.1vh', overflowY: 'scroll',scrollbarWidth:'none' }} className='border border-secondary'>
         {resources.map((resource, index) => (
           <div key={resource._id} >
             <div className='border border-primary p-1 m-2' onClick={()=>handleCombinedChange(resource)}>
@@ -426,7 +425,7 @@ const Navbar = ({ onResourceSelect }) => {
             <li>
               <Button onClick={handleResourceOpen}>Resource</Button>
             </li>
-            <br></br>
+            <br/>
             <li>
               <Button onClick={handleAllocationOpen}>Event</Button>
             </li>
