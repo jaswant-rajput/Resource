@@ -162,29 +162,32 @@ exports.getAllocationId = async (req,res) =>  {
 // to use in resourceControllers
 exports.createAllocationData = async(resource) => {
     const now = new Date();
-	const year = now.getFullYear();
-	const month = now.getMonth();
-	const startDate = new Date(year, month, 1);
-	const endDate = new Date(year, month + 1, 1);
-	const dates = [];
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const startDate = new Date(Date.UTC(year, month, 1)); // Set start date to midnight UTC
+    const endDate = new Date(Date.UTC(year, month + 1, 1)); // Set end date to midnight UTC
+    const dates = [];
 
-	while (startDate <= endDate) {
-		dates.push(new Date(startDate));
-		startDate.setDate(startDate.getDate() + 1);
-	}
+    while (startDate <= endDate) {
+        dates.push(new Date(startDate));
+        startDate.setUTCDate(startDate.getUTCDate() + 1); // Ensure it adds the date in UTC
+    }
 
-	const allocations = dates.map(day => {
+    const allocations = dates.map(day => {
+        // Ensure the date is formatted correctly
+        const formattedDate = day.toISOString().split('T')[0] + "T00:00:00.000Z";
         return {
             resourceObjectId: resource._id,
-            startdate: day,
+            startdate: formattedDate,
             defaultAllocation: [],
             allocationRecords: []
         }
-    })
+    });
 
-	await ResourceAllocation.create(allocations)
-	console.log("Allocation data created")
-}
+    await ResourceAllocation.create(allocations);
+    console.log("Allocation data created");
+};
+
 
 exports.removeAllocationData = async(resourceId) => {
 	await ResourceAllocation.deleteMany({resourceObjectId: resourceId})

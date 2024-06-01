@@ -9,26 +9,50 @@ import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import Alert from '@mui/material/Alert';
 import MenuItem from '@mui/material/MenuItem';
-import { getAllResources ,createResource } from '../actions/resourceActions';
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import dayjs from 'dayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+import { getAllResources, createResource } from '../actions/resourceActions';
+import { addAllocation, getAllocationByMonth } from '../actions/resourceAllocationActions';
 import { useEffect, useState } from 'react';
+// const { ObjectId } = require('mongoose').Types;
+//import { ObjectId } from 'bson';
+import { useRefresh } from './RefreshContext';
 
-const Navbar=({ onResourceSelect }) => {
+
+
+const Navbar = ({ onResourceSelect }) => {
   const [open, setOpen] = useState(false);
   const [resourceOpen, setResourceOpen] = useState(false);
   const [allocationOpen, setAllocationOpen] = useState(false);
-  const [singleDayOpen, setSingleDayOpen] = useState(false);
   const [multipleDayOpen, setMultipleDayOpen] = useState(false);
   const [defaultAllocationOpen, setDefaultAllocationOpen] = useState(false);
 
   const [resources, setResources] = useState([]);
   const [resourceType, setResourceType] = useState('');
   const [resourceNo, setResourceNo] = useState('');
+  const [resourceId, setResourceId] = useState('');
 
 
 
   const [alertMessage, setAlertMessage] = useState('');
   const [severity, setSeverity] = useState('');
   const [alertOpen, setAlertOpen] = useState(false);
+
+
+  const [singleDayOpen, setSingleDayOpen] = useState(false);
+  const [date, setDate] = useState('');
+  const [classInput, setClassInput] = useState('');
+  const [description, setDescription] = useState('');
+  const [starttime, setStartTime] = useState('');
+  const [endtime, setEndTime] = useState('');
+
+  const { triggerRefresh } = useRefresh();
+
+
 
   const fetchData = async () => {
     try {
@@ -40,8 +64,9 @@ const Navbar=({ onResourceSelect }) => {
           label: `${resource.resourceType} - ${resource.resourceNo}`,
           resourceNo: resource.resourceNo,
           resourceType: resource.resourceType,
-          _id : resource._id
-        }));
+          _id: resource._id,
+        }
+        ));
         setResources(transformedData); // Make sure this updates the state correctly
       } else {
         console.error('Invalid data format:', response);
@@ -55,6 +80,11 @@ const Navbar=({ onResourceSelect }) => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    console.log('Updated Resource Type:', resourceType);
+    console.log('Updated Resource No:', resourceNo);
+  }, [resourceType, resourceNo]);
 
   const handleOpen = () => {
     setOpen(true);
@@ -111,26 +141,49 @@ const Navbar=({ onResourceSelect }) => {
 
   const handleResourceTypeChange = (event) => {
     setResourceType(event.target.value);
+    console.log('resourceType', resourceType);
   };
 
   const handleAlertClose = () => {
     setAlertOpen(false);
   };
 
-  const triggerAlert = (message,severity) => {
+  const triggerAlert = (message, severity) => {
     setAlertMessage(message);
     setSeverity(severity);
     setAlertOpen(true);
   };
 
+
+  const handleCombinedChange = (resource) => {
+    if (resource) {
+      logSelectedResourceId(resource);
+      handleResourceSelection(resource);
+    }
+  }
+
   const logSelectedResourceId = (resource) => {
     if (resource) {
+      console.log('resource', resource)
+      onResourceSelect(resource._id);
+      setResourceId(resource._id);
       console.log('Selected Resource ID:', resource._id);
-     onResourceSelect(resource._id);
+      console.log('Selected Resource label:', resource.label);
+      console.log('Selected Resource Type:', resource.resourceType);
+      console.log('Selected Resource No:', resource.resourceNo);
     } else {
       console.log('No resource selected');
     }
   };
+
+  const handleResourceSelection = (resource) => {
+    if (resource) {
+      setResourceType(resource.resourceType);
+      setResourceNo(resource.resourceNo);
+
+    }
+  }
+
 
   const handleResourceCreateSave = async () => {
     console.log('Checking if resource exists:', { resourceNo, resourceType });
@@ -151,8 +204,8 @@ const Navbar=({ onResourceSelect }) => {
     try {
       const data = await createResource({ resourceNo, resourceType });
       console.log('Successful resource creation', data);
-      triggerAlert('Successfully Created Resource','success')
-      fetchData(); 
+      triggerAlert('Successfully Created Resource', 'success')
+      fetchData();
       handleResourceClose();
     } catch (err) {
       console.log('Error in creating resource', err);
@@ -163,11 +216,183 @@ const Navbar=({ onResourceSelect }) => {
     setResourceNo('');
   };
 
+  dayjs.extend(localizedFormat);
+
+
+  const handleSingleDayAllocation = () => {
+    // Ensure starttime and endtime are dayjs instances
+    const start = dayjs(starttime);
+    const end = dayjs(endtime);
+
+    if (!start.isValid() || !end.isValid()) {
+      console.error('Invalid start time or end time');
+      triggerAlert('Invalid start time or end time', 'error');
+      return;
+    }
+
+    const formattedStartTime = start.format('h:mm A');
+    const formattedEndTime = end.format('h:mm A');
+    const tempformattedTime = `${formattedStartTime} - ${formattedEndTime}`;
+
+    // Convert date string to a Date object
+    const parsedDate = new Date(date);
+
+    console.log('Date value:', parsedDate);
+    console.log('Date type:', typeof parsedDate);
+    console.log('Is date instance of Date:', parsedDate instanceof Date);
+    console.log('Is date NaN:', isNaN(parsedDate));
+
+    if (!(parsedDate instanceof Date) || isNaN(parsedDate)) {
+      console.error('Invalid date value');
+      triggerAlert('Invalid Date Value', 'error');
+      return;
+    }
+
+    // Format the date to ISO string with timezone offset set to zero (UTC)
+    const formattedDate = parsedDate.toISOString();
+    console.log('Formatted Date:', formattedDate);
+
+    const allocationData = {
+      resourceObjectId: resourceId,
+      dates: [formattedDate],
+      allocation: {
+        class: classInput,
+        description: description,
+        time: tempformattedTime
+      }
+    };
+
+    if (resourceId && formattedDate && classInput && description && tempformattedTime) {
+      addAllocation(JSON.stringify(allocationData))
+        .then(response => {
+          triggerRefresh();
+          console.log('Response from add allocation', response);
+          triggerAlert('Successfully Created Allocation', 'success');
+          handleSingleDayClose();
+        })
+        .catch(err => {
+          console.error('Failed to add allocation:', err);
+          triggerAlert('Failed to create Allocation', 'error');
+        });
+    } else {
+      triggerAlert('Fill in All the fields', 'error');
+    }
+
+
+  };
+
+
+  // const handleSingleDayAllocation = async () => {
+  //   // Ensure starttime and endtime are dayjs instances
+  //   const start = dayjs(starttime);
+  //   const end = dayjs(endtime);
+
+  //   if (!start.isValid() || !end.isValid()) {
+  //     console.error('Invalid start time or end time');
+  //     triggerAlert('Invalid start time or end time', 'error');
+  //     return;
+  //   }
+
+  //   const formattedStartTime = start.format('h:mm A');
+  //   const formattedEndTime = end.format('h:mm A');
+  //   const tempformattedTime = `${formattedStartTime} - ${formattedEndTime}`;
+
+  //   // Convert date string to a Date object
+  //   const parsedDate = new Date(date);
+
+  //   console.log('Date value:', parsedDate);
+  //   console.log('Date type:', typeof parsedDate);
+  //   console.log('Is date instance of Date:', parsedDate instanceof Date);
+  //   console.log('Is date NaN:', isNaN(parsedDate));
+
+  //   if (!(parsedDate instanceof Date) || isNaN(parsedDate)) {
+  //     console.error('Invalid date value');
+  //     triggerAlert('Invalid Date Value', 'error');
+  //     return;
+  //   }
+
+  //   // Format the date to ISO string with timezone offset set to zero (UTC)
+  //   const formattedDate = parsedDate.toISOString();
+  //   console.log('Formatted Date:', formattedDate);
+
+  //   // Extract year and month for getAllocationByMonth
+  //   const year = parsedDate.getFullYear();
+  //   const month = parsedDate.getMonth() + 1; // getMonth() is zero-based
+
+  //   // Fetch existing allocations for the month and resource
+  //   try {
+  //     const existingAllocations = await getAllocationByMonth(resourceId, year, month);
+  //     console.log('Existing allocations:', existingAllocations);
+
+  //     if (Array.isArray(existingAllocations)) {
+  //       // Check if there is any allocation for the selected date and time range
+  //       const allocationExists = existingAllocations.some(allocation => {
+  //         const allocationDate = new Date(allocation.dates[0]).toISOString().split('T')[0];
+  //         const selectedDate = formattedDate.split('T')[0];
+
+  //         if (allocationDate === selectedDate) {
+  //           const allocationStart = dayjs(allocation.allocation.time.split(' - ')[0], 'h:mm A');
+  //           const allocationEnd = dayjs(allocation.allocation.time.split(' - ')[1], 'h:mm A');
+
+  //           // Check for time overlap
+  //           return (start.isBefore(allocationEnd) && end.isAfter(allocationStart));
+  //         }
+  //         return false;
+  //       });
+
+  //       if (allocationExists) {
+  //         triggerAlert('Allocation already exists for the selected date and time', 'error');
+  //         return;
+  //       }
+  //     } else {
+  //       console.error('Invalid response format from getAllocationByMonth');
+  //       triggerAlert('Invalid response format from server', 'error');
+  //       return;
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching existing allocations:', error);
+  //     triggerAlert('Error fetching existing allocations', 'error');
+  //     return;
+  //   }
+
+  //   const allocationData = {
+  //     resourceObjectId: resourceId,
+  //     dates: [formattedDate],
+  //     allocation: {
+  //       class: classInput,
+  //       description: description,
+  //       time: tempformattedTime
+  //     }
+  //   };
+
+  //   if (resourceId && formattedDate && classInput && description && tempformattedTime) {
+  //     addAllocation(allocationData)
+  //       .then(response => {
+  //         triggerRefresh();
+  //         console.log('Response from add allocation', response);
+  //         triggerAlert('Successfully Created Allocation', 'success');
+  //       })
+  //       .catch(err => {
+  //         console.error('Failed to add allocation:', err);
+  //         triggerAlert('Failed to create Allocation', 'error');
+  //       });
+  //   } else {
+  //     triggerAlert('Fill in All the fields', 'error');
+  //   }
+
+  //   handleSingleDayClose();
+  // };
+
+
+
+
+
+
 
   return (
-    <div>
+    <div style={{ width: '16vw', marginRight: '1.7vw' }}>
       <div>
-        <button type="button" className="btn btn-primary rounded-pill" style={{ width: '16vw', marginBottom: '1.2vw', marginTop: '0.8vw' }} onClick={handleOpen}>
+        <button type="button" className="btn btn-primary rounded-pill" style={{ width: '16vw', marginBottom: '1.2vw', marginTop: '0.8vw', marginRight: '0.1vw' }} onClick={handleOpen}>
           Create
         </button>
       </div>
@@ -179,8 +404,19 @@ const Navbar=({ onResourceSelect }) => {
         getOptionLabel={(option) => `${option.resourceType} - ${option.resourceNo}`}
         sx={{ marginRight: '0.5vw', marginLeft: '0.5vw' }}
         renderInput={(params) => <TextField {...params} label="Resources" />}
-        onChange={(event, value) => logSelectedResourceId(value)}
+        onChange={(event, value) => handleCombinedChange(value)}
       />
+
+      <div style={{ width: '16vw',marginRight:"1.7vw", height: '61vh', marginTop: '2.1vh', overflowY: 'scroll',scrollbarWidth:'none' }} className='border border-secondary'>
+        {resources.map((resource, index) => (
+          <div key={resource._id} >
+            <div className='border border-primary p-1 m-2' onClick={()=>handleCombinedChange(resource)}>
+              <h6>{resource.resourceType} : {resource.resourceNo}</h6>
+            </div>
+          </div>
+        ))}
+      </div>
+
 
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Select an Option</DialogTitle>
@@ -189,7 +425,7 @@ const Navbar=({ onResourceSelect }) => {
             <li>
               <Button onClick={handleResourceOpen}>Resource</Button>
             </li>
-            <br></br>
+            <br/>
             <li>
               <Button onClick={handleAllocationOpen}>Event</Button>
             </li>
@@ -232,15 +468,15 @@ const Navbar=({ onResourceSelect }) => {
         <DialogContent>
           <ul>
             <li>
-              <Button onClick={handleSingleDayOpen}>Single Day Allocation</Button>
+              <Button onClick={handleSingleDayOpen}>Single Day Event</Button>
             </li>
             <br></br>
             <li>
-              <Button onClick={handleMultipleDayOpen}>Multiple Day Allocation</Button>
+              <Button onClick={handleMultipleDayOpen}>Multiple Day Event</Button>
             </li>
             <br></br>
             <li>
-              <Button onClick={handleDefaultAllocationOpen}>Set Default Allocation</Button>
+              <Button onClick={handleDefaultAllocationOpen}>Set Default Event</Button>
             </li>
           </ul>
         </DialogContent>
@@ -250,17 +486,78 @@ const Navbar=({ onResourceSelect }) => {
       </Dialog>
 
       <Dialog open={singleDayOpen} onClose={handleSingleDayClose}>
-        <DialogTitle>Single Day Allocation</DialogTitle>
+        <DialogTitle>Single Day Event</DialogTitle>
         <DialogContent>
-          {/* Add your single day allocation components here */}
+          <p>Allocation is being changed for {resourceType} : {resourceNo}</p>
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <TextField
+              label="Date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              fullWidth
+              margin="normal"
+              InputLabelProps={{ shrink: true }}
+            />
+          </div>
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <TextField
+              label="Class"
+              value={classInput}
+              onChange={(e) => setClassInput(e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+          </div>
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <TextField
+              label="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+          </div>
+
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={['TimePicker']}>
+                <TimePicker
+                  label="From Time"
+                  fullWidth
+                  onChange={(newTime) => setStartTime(newTime)}
+                  margin="normal"
+                />
+              </DemoContainer>
+            </LocalizationProvider>
+          </div>
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={['TimePicker']}>
+                <TimePicker
+                  label="To Time"
+                  fullWidth
+                  margin="normal"
+                  onChange={(newTime) => setEndTime(newTime)}
+                />
+              </DemoContainer>
+            </LocalizationProvider>
+          </div>
+
+
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleSingleDayClose}>Close</Button>
+          <Button onClick={handleSingleDayAllocation} color="primary">
+            Save
+          </Button>
+          <Button onClick={handleSingleDayClose} color="primary">
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={multipleDayOpen} onClose={handleMultipleDayClose}>
-        <DialogTitle>Multiple Day Allocation</DialogTitle>
+        <DialogTitle>Multiple Day Event</DialogTitle>
         <DialogContent>
           {/* Add your multiple day allocation components here */}
         </DialogContent>
@@ -270,7 +567,7 @@ const Navbar=({ onResourceSelect }) => {
       </Dialog>
 
       <Dialog open={defaultAllocationOpen} onClose={handleDefaultAllocationClose}>
-        <DialogTitle>Set Default Allocation</DialogTitle>
+        <DialogTitle>Set Default Event</DialogTitle>
         <DialogContent>
           {/* Add your default allocation components here */}
         </DialogContent>
