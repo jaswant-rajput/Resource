@@ -246,7 +246,7 @@ import React, { useEffect, useState } from 'react';
 import './calendar.css';
 import { getAllocationByMonth, removeAllocation } from '../actions/resourceAllocationActions';
 import { getAllResources } from '../actions/resourceActions';
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, IconButton } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, IconButton, Select, MenuItem } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import Alert from '@mui/material/Alert';
 import { useRefresh } from './RefreshContext';
@@ -265,6 +265,22 @@ const Calendar = ({ selectedResourceId }) => {
     const [alertMessage, setAlertMessage] = useState('');
     const [severity, setSeverity] = useState('');
     const [alertOpen, setAlertOpen] = useState(false);
+
+    const [month, setMonth] = useState(1); // Initial month
+    const months = [
+        { number: 1, name: 'January' },
+        { number: 2, name: 'February' },
+        { number: 3, name: 'March' },
+        { number: 4, name: 'April' },
+        { number: 5, name: 'May' },
+        { number: 6, name: 'June' },
+        { number: 7, name: 'July' },
+        { number: 8, name: 'August' },
+        { number: 9, name: 'September' },
+        { number: 10, name: 'October' },
+        { number: 11, name: 'November' },
+        { number: 12, name: 'December' }
+    ];
 
     useEffect(() => {
         if (selectedResourceId) {
@@ -298,10 +314,10 @@ const Calendar = ({ selectedResourceId }) => {
             .catch(err => console.log('Error fetching resources:', err));
     }
 
-
     const handleGetAllocationByMonth = (resourceId) => {
-        getAllocationByMonth(resourceId, '2024', '05')
+        getAllocationByMonth(resourceId, '2024', month)
             .then((data) => {
+                console.log('month from get Allocation ',month)
                 if (data && data.data) {
                     // Sort the data by startdate
                     const sortedData = data.data.sort((a, b) => new Date(a.startdate) - new Date(b.startdate));
@@ -397,6 +413,31 @@ const Calendar = ({ selectedResourceId }) => {
         setOpen(updatedAllocations.length > 0);
     };
 
+    const handleMonthChange = (event) => {
+        const selectedMonth = event.target.value;
+        setMonth(selectedMonth);
+        console.log('month number', selectedMonth);
+        handleGetAllocationByMonth1(selectedResourceId,selectedMonth)
+        // Perform any other actions you need when the month changes here
+    };
+
+    const handleGetAllocationByMonth1 = (resourceId,month) => {
+        getAllocationByMonth(resourceId, '2024', month)
+            .then((data) => {
+                console.log('month from get Allocation ',month)
+                if (data && data.data) {
+                    // Sort the data by startdate
+                    const sortedData = data.data.sort((a, b) => new Date(a.startdate) - new Date(b.startdate));
+                    setAllocationData(sortedData); // Setting the sorted data array directly
+                }
+                console.log(data);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    };
+
+
 
 
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -406,16 +447,24 @@ const Calendar = ({ selectedResourceId }) => {
     };
 
     const year = 2024;
-    const month = 4; // May (month is zero-indexed in JavaScript Date object)
+    //const month = 4; // May (month is zero-indexed in JavaScript Date object)
 
     const firstDayOfMonth = getFirstDayOfMonth(year, month);
     const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
 
     return (
         <div>
-            <p>Selected Resource Id is : {selectedResourceId}</p>
-            <div className=' text-center border border-primary'>
-                <h4> Selected Resource is {resourceType} : {resourceNo}</h4>
+            {/* <p>Selected Resource Id is : {selectedResourceId}</p> */}
+            <div className=' text-center border border-primary mt-2'>
+                <h5> Selected Resource is {resourceType} : {resourceNo}
+                    <div>
+                        <Select value={month} onChange={handleMonthChange}>
+                            {months.map((month, index) => (
+                                <MenuItem key={index} value={month.number}>{month.name}</MenuItem>
+                            ))}
+                        </Select>
+                    </div>
+                </h5>
             </div>
             <div className='days-of-week'>
                 {daysOfWeek.map((day, index) => (
