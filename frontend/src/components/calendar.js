@@ -244,7 +244,7 @@
 
 import React, { useEffect, useState } from 'react';
 import './calendar.css';
-import { getAllocationByMonth, removeAllocation } from '../actions/resourceAllocationActions';
+import { getAllocationByMonth, removeAllocation,getDefaultAllocation } from '../actions/resourceAllocationActions';
 import { getAllResources } from '../actions/resourceActions';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, IconButton, Select, MenuItem } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
@@ -259,6 +259,8 @@ const Calendar = ({ selectedResourceId }) => {
     const [startdate, setStartDate] = useState('');
     const [resourceType, setResourceType] = useState('');
     const [resourceNo, setResourceNo] = useState('');
+    const [defaultclass, setDefaultClass] = useState('');
+    const [time,setTime] = useState('');
 
     const { refresh, resetRefresh } = useRefresh();
 
@@ -268,18 +270,18 @@ const Calendar = ({ selectedResourceId }) => {
 
     const [month, setMonth] = useState(1); // Initial month
     const months = [
-        { number: 1, name: 'January' },
-        { number: 2, name: 'February' },
-        { number: 3, name: 'March' },
-        { number: 4, name: 'April' },
-        { number: 5, name: 'May' },
-        { number: 6, name: 'June' },
-        { number: 7, name: 'July' },
-        { number: 8, name: 'August' },
-        { number: 9, name: 'September' },
-        { number: 10, name: 'October' },
-        { number: 11, name: 'November' },
-        { number: 12, name: 'December' }
+        { number: 0, name: 'January' },
+        { number: 1, name: 'February' },
+        { number: 2, name: 'March' },
+        { number: 3, name: 'April' },
+        { number: 4, name: 'May' },
+        { number: 5, name: 'June' },
+        { number: 6, name: 'July' },
+        { number: 7, name: 'August' },
+        { number: 8, name: 'September' },
+        { number: 9, name: 'October' },
+        { number: 10, name: 'November' },
+        { number: 11, name: 'December' }
     ];
 
     useEffect(() => {
@@ -287,8 +289,27 @@ const Calendar = ({ selectedResourceId }) => {
             console.log("from calendar.js value is ", selectedResourceId);
             handleGetAllocationByMonth(selectedResourceId);
             handleResourceNames(selectedResourceId);
+            handleGetDefault(selectedResourceId)
         }
     }, [selectedResourceId]);
+
+    const handleGetDefault = (resourceId) => {
+        getDefaultAllocation(resourceId)
+            .then(response => {
+                if (response.success && response.data && response.data.length > 0) {
+                    const defaultAllocation = response.data[0];
+                    setDefaultClass(defaultAllocation.class);
+                    setTime(defaultAllocation.time);
+                    console.log('class and time is ',defaultAllocation)
+                } else {
+                    console.log('No default allocation found');
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching default allocation:', err);
+            });
+    };
+    
 
     const handleAlertClose = () => {
         setAlertOpen(false);
@@ -315,7 +336,8 @@ const Calendar = ({ selectedResourceId }) => {
     }
 
     const handleGetAllocationByMonth = (resourceId) => {
-        getAllocationByMonth(resourceId, '2024', month)
+        let nextmonth=month+1;
+        getAllocationByMonth(resourceId, '2024', nextmonth)
             .then((data) => {
                 console.log('month from get Allocation ',month)
                 if (data && data.data) {
@@ -422,9 +444,10 @@ const Calendar = ({ selectedResourceId }) => {
     };
 
     const handleGetAllocationByMonth1 = (resourceId,month) => {
-        getAllocationByMonth(resourceId, '2024', month)
+        let nextmonth = month+1
+        getAllocationByMonth(resourceId, '2024', nextmonth)
             .then((data) => {
-                console.log('month from get Allocation ',month)
+                console.log('month from get Allocation ',nextmonth)
                 if (data && data.data) {
                     // Sort the data by startdate
                     const sortedData = data.data.sort((a, b) => new Date(a.startdate) - new Date(b.startdate));
@@ -454,6 +477,7 @@ const Calendar = ({ selectedResourceId }) => {
 
     return (
         <div>
+            <p>Default Allocation is {defaultclass} from {time}</p>
             {/* <p>Selected Resource Id is : {selectedResourceId}</p> */}
             <div className=' text-center border border-primary mt-2'>
                 <h5> Selected Resource is {resourceType} : {resourceNo}

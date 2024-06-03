@@ -21,17 +21,22 @@ exports.setDefaultAllocation = async(req,res) =>{
 }
 
 // Get default allocation
-exports.getDefaultAllocation = async(req, res) => {
+exports.getDefaultAllocation = async (req, res) => {
     try {
-        const allocation = await ResourceAllocation.findById(req.params._id)
+        const { resourceObjectId } = req.params; // Assuming resourceObjectId is passed as a URL parameter
+
+        const allocation = await ResourceAllocation.findOne({ resourceObjectId });
+        
         if (!allocation) {
             return res.status(404).json({ success: false, message: "Allocation not found" });
         }
+
         res.json({ success: true, data: allocation.defaultAllocation });
-    } catch(err) {
-        res.status(500).json({ success: false, error: err});
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: err.message });
     }
-}
+};
 
 // Add allocation
 exports.addAllocation = async(req,res) =>{
