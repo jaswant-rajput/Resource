@@ -244,7 +244,7 @@
 
 import React, { useEffect, useState } from 'react';
 import './calendar.css';
-import { getAllocationByMonth, removeAllocation,getDefaultAllocation } from '../actions/resourceAllocationActions';
+import { getAllocationByMonth, removeAllocation,getDefaultAllocation, setDefaultAllocation } from '../actions/resourceAllocationActions';
 import { getAllResources } from '../actions/resourceActions';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, IconButton, Select, MenuItem } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
@@ -290,6 +290,8 @@ const Calendar = ({ selectedResourceId }) => {
             handleGetAllocationByMonth(selectedResourceId);
             handleResourceNames(selectedResourceId);
             handleGetDefault(selectedResourceId)
+            setDefaultClass('')
+            setTime('')
         }
     }, [selectedResourceId]);
 
@@ -477,7 +479,7 @@ const Calendar = ({ selectedResourceId }) => {
 
     return (
         <div>
-            <p>Default Allocation is {defaultclass} from {time}</p>
+            <p>Default Allocation is {defaultclass} {time}</p>
             {/* <p>Selected Resource Id is : {selectedResourceId}</p> */}
             <div className=' text-center border border-primary mt-2'>
                 <h5> Selected Resource is {resourceType} : {resourceNo}
@@ -513,7 +515,18 @@ const Calendar = ({ selectedResourceId }) => {
                                 <h5 style={{ textAlign: "center" }}>{day}</h5>
                                 <div>
                                     {dateAllocations.map((record, recordIndex) => (
-                                        <div key={recordIndex} className='border border-primary rounded' style={{ marginBottom: "0.5vh", position: "relative", padding: "0.5vw", marginRight: "0.5vh", marginLeft: "0.5vh" }}>
+                                       <div
+                                       key={recordIndex}
+                                       className={`border rounded ${recordIndex % 2 === 0 ? 'border-primary' : 'border-secondary'}`}
+                                       style={{
+                                         marginBottom: "0.5vh",
+                                         position: "relative",
+                                         padding: "0.5vw",
+                                         marginRight: "0.5vh",
+                                         marginLeft: "0.5vh",
+                                         backgroundColor: recordIndex % 2 === 0 ? '#f0f8ff' : '#ffe4e1', // Light blue for even, light pink for odd
+                                       }}
+                                     >
                                             {record.class}
                                             {/* {index} */}
                                         </div>

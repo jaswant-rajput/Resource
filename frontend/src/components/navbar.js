@@ -16,13 +16,11 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { getAllResources, createResource } from '../actions/resourceActions';
-import { addAllocation, setDefaultAllocation } from '../actions/resourceAllocationActions';
+import { addAllocation, setDefaultAllocation, getAllocationByMonth } from '../actions/resourceAllocationActions';
 import { useEffect, useState } from 'react';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
-// const { ObjectId } = require('mongoose').Types;
-//import { ObjectId } from 'bson';
 import { useRefresh } from './RefreshContext';
 
 
@@ -142,6 +140,12 @@ const Navbar = ({ onResourceSelect }) => {
 
   const handleMultipleDayClose = () => {
     setMultipleDayOpen(false);
+    setClassInput('')
+    setStartTime('')
+    setEndTime('')
+    setStartDate('')
+    setEndDate('')
+    setDescription('')
   };
 
   const handleDefaultAllocationOpen = () => {
@@ -151,6 +155,9 @@ const Navbar = ({ onResourceSelect }) => {
 
   const handleDefaultAllocationClose = () => {
     setDefaultAllocationOpen(false);
+    setClassInput('')
+    setStartTime('')
+    setEndTime('')
   };
 
   const handleResourceTypeChange = (event) => {
@@ -233,70 +240,7 @@ const Navbar = ({ onResourceSelect }) => {
   dayjs.extend(localizedFormat);
 
 
-  const handleSingleDayAllocation = () => {
-    // Ensure starttime and endtime are dayjs instances
-    const start = dayjs(starttime);
-    const end = dayjs(endtime);
-
-    if (!start.isValid() || !end.isValid()) {
-      console.error('Invalid start time or end time');
-      triggerAlert('Invalid start time or end time', 'error');
-      return;
-    }
-
-    const formattedStartTime = start.format('h:mm A');
-    const formattedEndTime = end.format('h:mm A');
-    const tempformattedTime = `${formattedStartTime} - ${formattedEndTime}`;
-
-    // Convert date string to a Date object
-    const parsedDate = new Date(date);
-
-    console.log('Date value:', parsedDate);
-    console.log('Date type:', typeof parsedDate);
-    console.log('Is date instance of Date:', parsedDate instanceof Date);
-    console.log('Is date NaN:', isNaN(parsedDate));
-
-    if (!(parsedDate instanceof Date) || isNaN(parsedDate)) {
-      console.error('Invalid date value');
-      triggerAlert('Invalid Date Value', 'error');
-      return;
-    }
-
-    // Format the date to ISO string with timezone offset set to zero (UTC)
-    const formattedDate = parsedDate.toISOString();
-    console.log('Formatted Date:', formattedDate);
-
-    const allocationData = {
-      resourceObjectId: resourceId,
-      dates: [formattedDate],
-      allocation: {
-        class: classInput,
-        description: description,
-        time: tempformattedTime
-      }
-    };
-
-    if (resourceId && formattedDate && classInput && description && tempformattedTime) {
-      addAllocation(JSON.stringify(allocationData))
-        .then(response => {
-          triggerRefresh();
-          console.log('Response from add allocation', response);
-          triggerAlert('Successfully Created Allocation', 'success');
-          handleSingleDayClose();
-        })
-        .catch(err => {
-          console.error('Failed to add allocation:', err);
-          triggerAlert('Failed to create Allocation', 'error');
-        });
-    } else {
-      triggerAlert('Fill in All the fields', 'error');
-    }
-
-    handleSingleDayClose();
-  };
-
-
-  // const handleSingleDayAllocation = async () => {
+  // const handleSingleDayAllocation = () => {
   //   // Ensure starttime and endtime are dayjs instances
   //   const start = dayjs(starttime);
   //   const end = dayjs(endtime);
@@ -329,46 +273,6 @@ const Navbar = ({ onResourceSelect }) => {
   //   const formattedDate = parsedDate.toISOString();
   //   console.log('Formatted Date:', formattedDate);
 
-  //   // Extract year and month for getAllocationByMonth
-  //   const year = parsedDate.getFullYear();
-  //   const month = parsedDate.getMonth() + 1; // getMonth() is zero-based
-
-  //   // Fetch existing allocations for the month and resource
-  //   try {
-  //     const existingAllocations = await getAllocationByMonth(resourceId, year, month);
-  //     console.log('Existing allocations:', existingAllocations);
-
-  //     if (Array.isArray(existingAllocations)) {
-  //       // Check if there is any allocation for the selected date and time range
-  //       const allocationExists = existingAllocations.some(allocation => {
-  //         const allocationDate = new Date(allocation.dates[0]).toISOString().split('T')[0];
-  //         const selectedDate = formattedDate.split('T')[0];
-
-  //         if (allocationDate === selectedDate) {
-  //           const allocationStart = dayjs(allocation.allocation.time.split(' - ')[0], 'h:mm A');
-  //           const allocationEnd = dayjs(allocation.allocation.time.split(' - ')[1], 'h:mm A');
-
-  //           // Check for time overlap
-  //           return (start.isBefore(allocationEnd) && end.isAfter(allocationStart));
-  //         }
-  //         return false;
-  //       });
-
-  //       if (allocationExists) {
-  //         triggerAlert('Allocation already exists for the selected date and time', 'error');
-  //         return;
-  //       }
-  //     } else {
-  //       console.error('Invalid response format from getAllocationByMonth');
-  //       triggerAlert('Invalid response format from server', 'error');
-  //       return;
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching existing allocations:', error);
-  //     triggerAlert('Error fetching existing allocations', 'error');
-  //     return;
-  //   }
-
   //   const allocationData = {
   //     resourceObjectId: resourceId,
   //     dates: [formattedDate],
@@ -380,11 +284,12 @@ const Navbar = ({ onResourceSelect }) => {
   //   };
 
   //   if (resourceId && formattedDate && classInput && description && tempformattedTime) {
-  //     addAllocation(allocationData)
+  //     addAllocation(JSON.stringify(allocationData))
   //       .then(response => {
   //         triggerRefresh();
   //         console.log('Response from add allocation', response);
   //         triggerAlert('Successfully Created Allocation', 'success');
+  //         handleSingleDayClose();
   //       })
   //       .catch(err => {
   //         console.error('Failed to add allocation:', err);
@@ -396,6 +301,122 @@ const Navbar = ({ onResourceSelect }) => {
 
   //   handleSingleDayClose();
   // };
+
+
+  const handleSingleDayAllocation = async () => {
+    // Ensure starttime and endtime are dayjs instances
+    const start = dayjs(starttime);
+    const end = dayjs(endtime);
+  
+    if (!start.isValid() || !end.isValid()) {
+      console.error('Invalid start time or end time');
+      triggerAlert('Invalid start time or end time', 'error');
+      return;
+    }
+  
+    const formattedStartTime = start.format('h:mm A');
+    const formattedEndTime = end.format('h:mm A');
+    const tempformattedTime = `${formattedStartTime} - ${formattedEndTime}`;
+  
+    // Convert date string to a Date object
+    const parsedDate = new Date(date);
+  
+    if (!(parsedDate instanceof Date) || isNaN(parsedDate)) {
+      console.error('Invalid date value');
+      triggerAlert('Invalid Date Value', 'error');
+      return;
+    }
+  
+    // Format the date to ISO string with timezone offset set to zero (UTC)
+    const formattedDate = parsedDate.toISOString().split('T')[0]; // Only take the date part
+    const year = parsedDate.getFullYear();
+    const month = parsedDate.getMonth() + 1; // getMonth() is zero-based
+  
+    // Fetch existing allocations for the month and resource
+    try {
+      const existingAllocations = await getAllocationByMonth(resourceId, year, month);
+      console.log('Existing allocations:', existingAllocations);
+  
+      if (existingAllocations && Array.isArray(existingAllocations.data)) {
+        const allocationExists = existingAllocations.data.some(allocation => {
+          if (!allocation.startdate) {
+            console.error('Invalid startdate in allocation:', allocation);
+            return false;
+          }
+  
+          const allocationDate = new Date(allocation.startdate).toISOString().split('T')[0];
+          if (allocationDate === formattedDate) {
+            if (!allocation.allocationRecords || !Array.isArray(allocation.allocationRecords)) {
+              return false;
+            }
+  
+            return allocation.allocationRecords.some(record => {
+              if (!record.time) {
+                console.error('Invalid time in record:', record);
+                return false;
+              }
+  
+              const allocationTimes = record.time.split(' - ');
+              if (allocationTimes.length !== 2) {
+                console.error('Invalid time format in record:', record);
+                return false;
+              }
+  
+              const allocationStart = dayjs(allocationTimes[0], 'h:mm A');
+              const allocationEnd = dayjs(allocationTimes[1], 'h:mm A');
+  
+              console.log(`Checking allocation on date ${allocationDate} with time ${record.time}`);
+              console.log(`New allocation start time: ${formattedStartTime}, end time: ${formattedEndTime}`);
+              console.log(`Existing allocation start time: ${allocationStart.format('h:mm A')}, end time: ${allocationEnd.format('h:mm A')}`);
+              // Check for time overlap
+              return start.isBefore(allocationEnd) && end.isAfter(allocationStart);
+            });
+          }
+          return false;
+        });
+  
+        if (allocationExists) {
+          triggerAlert('Allocation already exists for the selected date and time', 'error');
+          return;
+        }
+      } else {
+        console.error('Invalid response format from getAllocationByMonth');
+        triggerAlert('Invalid response format from server', 'error');
+        return;
+      }
+    } catch (error) {
+      console.error('Error fetching existing allocations:', error);
+      triggerAlert('Error fetching existing allocations', 'error');
+      return;
+    }
+  
+    const allocationData = {
+      resourceObjectId: resourceId,
+      dates: [parsedDate.toISOString()],
+      allocation: {
+        class: classInput,
+        description: description,
+        time: tempformattedTime
+      }
+    };
+  
+    if (resourceId && formattedDate && classInput && description && tempformattedTime) {
+      addAllocation(JSON.stringify(allocationData))
+        .then(response => {
+          triggerRefresh();
+          console.log('Response from add allocation', response);
+          triggerAlert('Successfully Created Allocation', 'success');
+        })
+        .catch(err => {
+          console.error('Failed to add allocation:', err);
+          triggerAlert('Failed to create Allocation', 'error');
+        });
+    } else {
+      triggerAlert('Fill in All the fields', 'error');
+    }
+  
+    handleSingleDayClose();
+  };
 
 
   // const handleMultipleDaySave = () => {
@@ -438,9 +459,16 @@ const Navbar = ({ onResourceSelect }) => {
   //   const datesArray = [];
   //   let currentDate = parsedStartDate;
 
-  //   while (currentDate <= parsedEndDate) {
-  //     datesArray.push(new Date(currentDate).toISOString());
-  //     currentDate.setDate(currentDate.getDate() + 1);
+  //   if (isWeekDayChecked) { // Check if the checkbox is checked
+  //     while (currentDate <= parsedEndDate) {
+  //       datesArray.push(new Date(currentDate).toISOString());
+  //       currentDate.setDate(currentDate.getDate() + 7); // Increment by 7 days
+  //     }
+  //   } else {
+  //     while (currentDate <= parsedEndDate) {
+  //       datesArray.push(new Date(currentDate).toISOString());
+  //       currentDate.setDate(currentDate.getDate() + 1); // Increment by 1 day
+  //     }
   //   }
 
   //   console.log('Generated Dates Array:', datesArray);
@@ -476,48 +504,36 @@ const Navbar = ({ onResourceSelect }) => {
   //   }
   // };
 
-
-
-  const handleMultipleDaySave = () => {
+  const handleMultipleDaySave = async () => {
     // Ensure starttime and endtime are dayjs instances
     const start = dayjs(starttime);
     const end = dayjs(endtime);
-
+  
     if (!start.isValid() || !end.isValid()) {
       console.error('Invalid start time or end time');
       triggerAlert('Invalid start time or end time', 'error');
       return;
     }
-
+  
     const formattedStartTime = start.format('h:mm A');
     const formattedEndTime = end.format('h:mm A');
     const tempformattedTime = `${formattedStartTime} - ${formattedEndTime}`;
-
+  
     // Convert start and end dates to Date objects
     const parsedStartDate = new Date(startDate);
     const parsedEndDate = new Date(endDate);
-
-    console.log('Start Date value:', parsedStartDate);
-    console.log('End Date value:', parsedEndDate);
-
+  
     if (!(parsedStartDate instanceof Date) || isNaN(parsedStartDate) ||
       !(parsedEndDate instanceof Date) || isNaN(parsedEndDate)) {
       console.error('Invalid start or end date value');
       triggerAlert('Invalid start or end date value', 'error');
       return;
     }
-
-    // Format the start and end dates to ISO strings
-    const formattedStartDate = parsedStartDate.toISOString();
-    const formattedEndDate = parsedEndDate.toISOString();
-
-    console.log('Formatted Start Date:', formattedStartDate);
-    console.log('Formatted End Date:', formattedEndDate);
-
+  
     // Generate an array of dates from start to end date
     const datesArray = [];
     let currentDate = parsedStartDate;
-
+  
     if (isWeekDayChecked) { // Check if the checkbox is checked
       while (currentDate <= parsedEndDate) {
         datesArray.push(new Date(currentDate).toISOString());
@@ -529,10 +545,73 @@ const Navbar = ({ onResourceSelect }) => {
         currentDate.setDate(currentDate.getDate() + 1); // Increment by 1 day
       }
     }
-
+  
     console.log('Generated Dates Array:', datesArray);
-
-    // Log formatted data
+  
+    // Check for overlapping allocations
+    try {
+      for (let date of datesArray) {
+        const parsedDate = new Date(date);
+        const year = parsedDate.getFullYear();
+        const month = parsedDate.getMonth() + 1; // getMonth() is zero-based
+  
+        const existingAllocations = await getAllocationByMonth(resourceId, year, month);
+        console.log('Existing allocations:', existingAllocations);
+  
+        if (existingAllocations && Array.isArray(existingAllocations.data)) {
+          const allocationExists = existingAllocations.data.some(allocation => {
+            if (!allocation.startdate) {
+              console.error('Invalid startdate in allocation:', allocation);
+              return false;
+            }
+  
+            const allocationDate = new Date(allocation.startdate).toISOString().split('T')[0];
+            if (allocationDate === date.split('T')[0]) {
+              if (!allocation.allocationRecords || !Array.isArray(allocation.allocationRecords)) {
+                return false;
+              }
+  
+              return allocation.allocationRecords.some(record => {
+                if (!record.time) {
+                  console.error('Invalid time in record:', record);
+                  return false;
+                }
+  
+                const allocationTimes = record.time.split(' - ');
+                if (allocationTimes.length !== 2) {
+                  console.error('Invalid time format in record:', record);
+                  return false;
+                }
+  
+                const allocationStart = dayjs(allocationTimes[0], 'h:mm A');
+                const allocationEnd = dayjs(allocationTimes[1], 'h:mm A');
+  
+                console.log(`Checking allocation on date ${allocationDate} with time ${record.time}`);
+                console.log(`New allocation start time: ${formattedStartTime}, end time: ${formattedEndTime}`);
+                console.log(`Existing allocation start time: ${allocationStart.format('h:mm A')}, end time: ${allocationEnd.format('h:mm A')}`);
+                // Check for time overlap
+                return start.isBefore(allocationEnd) && end.isAfter(allocationStart);
+              });
+            }
+            return false;
+          });
+  
+          if (allocationExists) {
+            triggerAlert(`Allocation already exists for the selected date (${date.split('T')[0]}) and time`, 'error');
+            return;
+          }
+        } else {
+          console.error('Invalid response format from getAllocationByMonth');
+          triggerAlert('Invalid response format from server', 'error');
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching existing allocations:', error);
+      triggerAlert('Error fetching existing allocations', 'error');
+      return;
+    }
+  
     const allocationData = {
       resourceObjectId: resourceId,
       dates: datesArray,
@@ -542,17 +621,16 @@ const Navbar = ({ onResourceSelect }) => {
         time: tempformattedTime
       }
     };
-
+  
     console.log('Formatted Allocation Data:', allocationData);
-
-    // Rest of the save logic can go here, if needed
-    if (resourceId && datesArray && classInput && description && tempformattedTime) {
+  
+    if (resourceId && datesArray.length > 0 && classInput && description && tempformattedTime) {
       addAllocation(JSON.stringify(allocationData))
         .then(response => {
           triggerRefresh();
           console.log('Response from add allocation', response);
           triggerAlert('Successfully Created Allocation', 'success');
-          handleSingleDayClose();
+          handleMultipleDayClose();
         })
         .catch(err => {
           console.error('Failed to add allocation:', err);
@@ -561,7 +639,8 @@ const Navbar = ({ onResourceSelect }) => {
     } else {
       triggerAlert('Fill in All the fields', 'error');
     }
-};
+  };
+  
 
 
 
@@ -586,15 +665,25 @@ const Navbar = ({ onResourceSelect }) => {
       time: tempformattedTime
     };
 
-    setDefaultAllocation(resourceId, JSON.stringify(allocationData))
-      .then(response => {
-        console.log('Response from set default allocation:', response);
-        triggerAlert('Successfully set default allocation', 'success');
-      })
-      .catch(err => {
-        console.error('Failed to set default allocation:', err);
-        triggerAlert('Failed to set default allocation', 'error');
-      });
+    if(tempformattedTime && classInput)
+      {
+        setDefaultAllocation(resourceId, JSON.stringify(allocationData))
+        .then(response => {
+          console.log('Response from set default allocation:', response);
+          triggerAlert('Successfully set default allocation', 'success');
+        })
+        .catch(err => {
+          console.error('Failed to set default allocation:', err);
+          triggerAlert('Failed to set default allocation', 'error');
+        });
+
+      }
+      else
+      {
+        triggerAlert('Please Fill in All the fields','error')
+      }
+
+      handleDefaultAllocationClose();
 
   }
 
