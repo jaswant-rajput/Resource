@@ -11,7 +11,7 @@ const {
 const router = express.Router();
 
 router.patch('/set-default-allocation/:resourceObjectId', setDefaultAllocation);
-router.get('/get-default-allocation/:_id',getDefaultAllocation);
+router.get('/get-default-allocation/:resourceObjectId',getDefaultAllocation);
 router.patch('/add-allocation', addAllocation);
 router.delete('/remove-allocation', removeAllocation);
 router.get('/get-allocation-by-month',getAllocationByMonth);
