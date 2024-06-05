@@ -480,7 +480,7 @@ const Calendar = ({ selectedResourceId }) => {
     return (
         <div>
             <p>Default Allocation is {defaultclass} {time}</p>
-            {/* <p>Selected Resource Id is : {selectedResourceId}</p> */}
+            <p>Selected Resource Id is : {selectedResourceId}</p>
             <div className=' text-center border border-primary mt-2'>
                 <h5> Selected Resource is {resourceType} : {resourceNo}
                     <div>
