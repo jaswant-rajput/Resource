@@ -24,8 +24,9 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    otp: {
-        type : Number,
+    department: {
+        type: String,
+        trim: true
     },
     role: {
         type: Number,

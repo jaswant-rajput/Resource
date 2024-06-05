@@ -10,16 +10,8 @@ export const createResource = (resourceData) => {
 		body: JSON.stringify(resourceData)
   	})
     .then(response => response.json())
-    .then(data => {
-      	if (data.success) {
-        	return data;
-      	} else {
-        	throw new Error(data.error);
-      	}
-    })
     .catch(err => {
-      	console.error("Error creating resource:", err);
-      	throw err; // Rethrow error for caller to handle
+      	console.error("Error creating resource:", err)
     })
 }
 
@@ -31,6 +23,30 @@ export const getAllResources = () => {
 			'Content-type': 'application/json'
 		}
 	})
-		.then(response => response.json())
-		.catch(err => console.log(err))
+	.then(response => response.json())
+	.catch(err => console.log("Error getting resource:", err))
+}
+
+export const getResourceById = (_id) => {
+	return fetch(`${ENDPOINT_URL}/get-resource/${_id}`, {
+		method: "GET",
+		headers: {
+			Accept: 'application/json',
+			'Content-type': 'application/json'
+		}
+	})
+	.then(response => response.json())
+	.catch(err => console.log("Error getting resource:", err))
+}
+
+export const deleteResource = (_id) => {
+	return fetch(`${ENDPOINT_URL}/delete-resource/${_id}`, {
+		method: "DELETE",
+		headers: {
+			Accept: 'application/json',
+			'Content-type': 'application/json'
+		}
+	})
+	.then(response => response.json())
+	.catch(err => console.log("Error deleting resource:", err))
 }
