@@ -1,250 +1,6 @@
-// import React, { useEffect, useState } from 'react';
-// import './calendar.css';
-// import { getAllocationByMonth, removeAllocation } from '../actions/resourceAllocationActions';
-// import { getAllResources } from '../actions/resourceActions';
-// import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, IconButton } from '@mui/material';
-// import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-// import Alert from '@mui/material/Alert';
-// import { useRefresh } from './RefreshContext';
-
-
-
-// const Calendar = ({ selectedResourceId }) => {
-//     const [allocationData, setAllocationData] = useState([]);
-//     const [open, setOpen] = useState(false);
-//     const [selectedDateAllocations, setSelectedDateAllocations] = useState([]);
-//     const [selectedAllocation, setSelectedAllocation] = useState(null);
-//     const [startdate, setStartDate] = useState('')
-
-//     const { refresh, resetRefresh } = useRefresh();
-
-//     const [alertMessage, setAlertMessage] = useState('');
-//     const [severity, setSeverity] = useState('');
-//     const [alertOpen, setAlertOpen] = useState(false);
-
-
-//     useEffect(() => {
-//         if (selectedResourceId) {
-//             console.log("from calendar.js value is ", selectedResourceId);
-//             handleGetAllocationByMonth(selectedResourceId);
-//         }
-//     }, [selectedResourceId]);
-
-//     // useEffect (()=>{
-//     //     getAllResources().then(data=>console.log('data',data))
-//     //     .catch(err=>console.log('error',err));
-//     // })
-
-
-//     const handleAlertClose = () => {
-//         setAlertOpen(false);
-//     };
-
-//     const triggerAlert = (message, severity) => {
-//         setAlertMessage(message);
-//         setSeverity(severity);
-//         setAlertOpen(true);
-//     };
-
-
-
-//     const handleGetAllocationByMonth = (resourceId) => {
-//         getAllocationByMonth(resourceId, '2024', '05')
-//             .then((data) => {
-//                 if (data && data.data) {
-//                     // Sort the data by startdate
-//                     const sortedData = data.data.sort((a, b) => new Date(a.startdate) - new Date(b.startdate));
-//                     setAllocationData(sortedData); // Setting the sorted data array directly
-//                 }
-//                 console.log(data);
-//             })
-//             .catch((err) => {
-//                 console.log(err);
-//             });
-//     };
-//     useEffect(() => {
-//         if (refresh) {
-//             // Refresh your calendar here
-//             console.log('Refreshing calendar...');
-//             // Your calendar refresh logic
-
-//             // After refreshing, reset the state
-//             resetRefresh();
-//             handleGetAllocationByMonth(selectedResourceId);
-//         }
-//     }, [refresh, resetRefresh, handleGetAllocationByMonth]);
-
-
-
-//     const handleSingleAllocation = (dateAllocations, startdate) => {
-//         setSelectedDateAllocations(dateAllocations);
-//         setStartDate(startdate)
-//         setOpen(true);
-//     };
-
-//     const handleClose = () => {
-//         setOpen(false);
-//         setSelectedDateAllocations([]);
-//     };
-
-//     const handleDeleteAllocation = (allocation) => {
-//         // console.log('Deleting allocation:', allocation);
-//         // console.log('set allocation data', allocationData);
-//         // console.log('start date is', startdate);
-
-//         // Find the matching entry in allocationData
-//         let outerId = null;
-//         allocationData.forEach((data) => {
-//             if (data.startdate === startdate) {
-//                 outerId = data._id;
-//             }
-//         });
-
-//         if (!outerId) {
-//             console.error('No matching allocation data found for the selected date');
-//             triggerAlert('No matching allocation data found for the selected date', 'error');
-//             return;
-//         }
-
-//         console.log('Found outerId:', outerId);
-
-//         // Perform the deletion logic here (e.g., update the state or make an API call)
-//         const updatedAllocations = selectedDateAllocations.filter(item => item._id !== allocation._id);
-//         setSelectedDateAllocations(updatedAllocations);
-
-//         setAllocationData(allocationData.map(data => {
-//             if (data._id === outerId) {
-//                 return {
-//                     ...data,
-//                     allocationRecords: data.allocationRecords.filter(record => record._id !== allocation._id)
-//                 };
-//             }
-//             return data;
-//         }));
-
-
-//         // Prepare the data for the delete request in the required format
-//         const deleteData = {
-//             _id: outerId,
-//             allocation: {
-//                 class: allocation.class,
-//                 description: allocation.description,
-//                 time: allocation.time,
-//                 _id: allocation._id
-//             }
-//         };
-
-//         console.log('deletion data', deleteData)
-
-//         removeAllocation(JSON.stringify(deleteData))
-//             .then(response => {
-//                 console.log('Response for delete:', response);
-//                 triggerAlert('Successfully deleted allocation', 'success');
-//             })
-//             .catch(err => {
-//                 console.log('Error from delete:', err);
-//                 triggerAlert('Failed to delete allocation', 'error');
-//             });
-
-//         setSelectedAllocation(null);
-//         setOpen(updatedAllocations.length > 0); // Close dialog if no allocations left
-//     };
-
-//         const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-//     const getFirstDayOfMonth = (year, month) => {
-//         return new Date(year, month, 1).getDay();
-//     };
-
-//     const year = 2024;
-//     const month = 4; // May (month is zero-indexed in JavaScript Date object)
-
-//     const firstDayOfMonth = getFirstDayOfMonth(year, month);
-//     const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
-
-
-
-//     return (
-//         <div>
-//              <div className='days-of-week'>
-//                {daysOfWeek.map((day, index) => (
-//                     <div key={index} className='day-cell'>
-//                         {day}
-//                     </div>
-//                 ))}
-//             </div> 
-//             {/* <p>Selected Resource Id is : {selectedResourceId}</p> */}
-//             <div className='col-10'>
-//                 <div className='grid-container' >
-//                     {allocationData.length > 0 ? (
-//                         allocationData.map((item, i) => (
-//                             <div key={i} className='grid-cell border border-secondary' onClick={() => handleSingleAllocation(item.allocationRecords, item.startdate)} style={{ overflowY: "scroll", scrollbarWidth: "none" }}>
-//                                 <h5 style={{ textAlign: "center" }}>{i + 1}</h5>
-//                                 <div>
-//                                     {item.allocationRecords.map((record, index) => (
-//                                         <div key={index} className='border border-primary rounded' style={{ marginBottom: "0.5vh", position: "relative", padding: "0.5vw", marginRight: "0.5vh", marginLeft: "0.5vh" }}>
-//                                             {record.class}
-//                                             {/* {item.startdate} */}
-//                                         </div>
-//                                     ))}
-//                                 </div>
-//                             </div>
-//                         ))
-//                     ) : (
-//                         <p>No allocation data available</p>
-//                     )}
-//                 </div>
-//             </div>
-
-//             <Dialog open={open} onClose={handleClose}>
-//                 <DialogTitle>
-//                     Allocation Details
-//                 </DialogTitle>
-//                 <DialogContent>
-//                     {selectedDateAllocations.map((allocation, index) => (
-//                         <div key={index} className='border border-primary rounded' style={{ marginBottom: "1vh", position: "relative", padding: "2vw" }}>
-//                             <IconButton
-//                                 aria-label="delete"
-//                                 onClick={() => handleDeleteAllocation(allocation)}
-//                                 style={{ position: 'absolute', right: -6, top: -3 }}
-//                             >
-//                                 <DeleteIcon style={{ color: 'blue' }} />
-//                             </IconButton>
-//                             <DialogContentText>
-//                                 <strong>Description:</strong> {allocation.description}
-//                             </DialogContentText>
-//                             <DialogContentText>
-//                                 <strong>Class:</strong> {allocation.class}
-//                             </DialogContentText>
-//                             <DialogContentText>
-//                                 <strong>Time:</strong> {allocation.time}
-//                             </DialogContentText>
-//                         </div>
-//                     ))}
-//                 </DialogContent>
-//                 <DialogActions>
-//                     <Button onClick={handleClose} color="primary">
-//                         Close
-//                     </Button>
-//                 </DialogActions>
-//             </Dialog>
-
-//             {/*alert */}
-//             <Dialog open={alertOpen} onClose={handleAlertClose}>
-//                 <Alert severity={severity} onClose={handleAlertClose}>
-//                     {alertMessage}
-//                 </Alert>
-//             </Dialog>
-//         </div>
-//     );
-// };
-
-// export default Calendar;
-
-
 import React, { useEffect, useState } from 'react';
 import './calendar.css';
-import { getAllocationByMonth, removeAllocation,getDefaultAllocation, setDefaultAllocation } from '../actions/resourceAllocationActions';
+import { getAllocationByMonth, removeAllocation, getDefaultAllocation, setDefaultAllocation } from '../actions/resourceAllocationActions';
 import { getAllResources } from '../actions/resourceActions';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, IconButton, Select, MenuItem } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
@@ -260,7 +16,7 @@ const Calendar = ({ selectedResourceId }) => {
     const [resourceType, setResourceType] = useState('');
     const [resourceNo, setResourceNo] = useState('');
     const [defaultclass, setDefaultClass] = useState('');
-    const [time,setTime] = useState('');
+    const [time, setTime] = useState('');
 
     const { refresh, resetRefresh } = useRefresh();
 
@@ -268,7 +24,7 @@ const Calendar = ({ selectedResourceId }) => {
     const [severity, setSeverity] = useState('');
     const [alertOpen, setAlertOpen] = useState(false);
 
-    const [month, setMonth] = useState(1); // Initial month
+    const [month, setMonth] = useState(0); // Initial month
     const months = [
         { number: 0, name: 'January' },
         { number: 1, name: 'February' },
@@ -283,10 +39,25 @@ const Calendar = ({ selectedResourceId }) => {
         { number: 10, name: 'November' },
         { number: 11, name: 'December' }
     ];
+    // const months = [
+    //     { number: 1, name: 'January' },
+    //     { number: 2, name: 'February' },
+    //     { number: 3, name: 'March' },
+    //     { number: 4, name: 'April' },
+    //     { number: 5, name: 'May' },
+    //     { number: 6, name: 'June' },
+    //     { number: 7, name: 'July' },
+    //     { number: 8, name: 'August' },
+    //     { number: 9, name: 'September' },
+    //     { number: 10, name: 'October' },
+    //     { number: 11, name: 'November' },
+    //     { number: 12, name: 'December' }
+    // ];
 
     useEffect(() => {
         if (selectedResourceId) {
             console.log("from calendar.js value is ", selectedResourceId);
+            // handleGetAllocationByMonth(selectedResourceId);
             handleGetAllocationByMonth(selectedResourceId);
             handleResourceNames(selectedResourceId);
             handleGetDefault(selectedResourceId)
@@ -302,7 +73,7 @@ const Calendar = ({ selectedResourceId }) => {
                     const defaultAllocation = response.data[0];
                     setDefaultClass(defaultAllocation.class);
                     setTime(defaultAllocation.time);
-                    console.log('class and time is ',defaultAllocation)
+                    console.log('class and time is ', defaultAllocation)
                 } else {
                     console.log('No default allocation found');
                 }
@@ -311,7 +82,7 @@ const Calendar = ({ selectedResourceId }) => {
                 console.error('Error fetching default allocation:', err);
             });
     };
-    
+
 
     const handleAlertClose = () => {
         setAlertOpen(false);
@@ -338,10 +109,10 @@ const Calendar = ({ selectedResourceId }) => {
     }
 
     const handleGetAllocationByMonth = (resourceId) => {
-        let nextmonth=month+1;
+        let nextmonth = month + 1;
         getAllocationByMonth(resourceId, '2024', nextmonth)
             .then((data) => {
-                console.log('month from get Allocation ',month)
+                console.log('month from get Allocation ', nextmonth)
                 if (data && data.data) {
                     // Sort the data by startdate
                     const sortedData = data.data.sort((a, b) => new Date(a.startdate) - new Date(b.startdate));
@@ -441,15 +212,16 @@ const Calendar = ({ selectedResourceId }) => {
         const selectedMonth = event.target.value;
         setMonth(selectedMonth);
         console.log('month number', selectedMonth);
-        handleGetAllocationByMonth1(selectedResourceId,selectedMonth)
+        handleGetAllocationByMonth1(selectedResourceId, selectedMonth)
+        //handleGetAllocationByMonth(selectedResourceId)
         // Perform any other actions you need when the month changes here
     };
 
-    const handleGetAllocationByMonth1 = (resourceId,month) => {
-        let nextmonth = month+1
+    const handleGetAllocationByMonth1 = (resourceId, month) => {
+        let nextmonth = month + 1
         getAllocationByMonth(resourceId, '2024', nextmonth)
             .then((data) => {
-                console.log('month from get Allocation ',nextmonth)
+                console.log('month from get Allocation ', nextmonth)
                 if (data && data.data) {
                     // Sort the data by startdate
                     const sortedData = data.data.sort((a, b) => new Date(a.startdate) - new Date(b.startdate));
@@ -479,18 +251,24 @@ const Calendar = ({ selectedResourceId }) => {
 
     return (
         <div>
-            <p>Default Allocation is {defaultclass} {time}</p>
-            <p>Selected Resource Id is : {selectedResourceId}</p>
-            <div className=' text-center border border-primary mt-2'>
-                <h5> Selected Resource is {resourceType} : {resourceNo}
-                    <div>
-                        <Select value={month} onChange={handleMonthChange}>
+            {/* <p>Default Allocation is {defaultclass} {time}</p> */}
+            {/* <p>Selected Resource Id is : {selectedResourceId}</p> */}
+            <div className='border border-primary p-2'>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h6 className='text-start' style={{ marginBottom: 0 }}>
+                        Default Allocation is {defaultclass} {time}
+                    </h6>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <h6 className='text-center' style={{ marginBottom: 0 }}>
+                            Selected Resource is {resourceType} : {resourceNo}
+                        </h6>
+                        <Select value={month} onChange={handleMonthChange} style={{ marginLeft: '2vw' }}>
                             {months.map((month, index) => (
                                 <MenuItem key={index} value={month.number}>{month.name}</MenuItem>
                             ))}
                         </Select>
                     </div>
-                </h5>
+                </div>
             </div>
             <div className='days-of-week'>
                 {daysOfWeek.map((day, index) => (
@@ -515,20 +293,22 @@ const Calendar = ({ selectedResourceId }) => {
                                 <h5 style={{ textAlign: "center" }}>{day}</h5>
                                 <div>
                                     {dateAllocations.map((record, recordIndex) => (
-                                       <div
-                                       key={recordIndex}
-                                       className={`border rounded ${recordIndex % 2 === 0 ? 'border-primary' : 'border-secondary'}`}
-                                       style={{
-                                         marginBottom: "0.5vh",
-                                         position: "relative",
-                                         padding: "0.5vw",
-                                         marginRight: "0.5vh",
-                                         marginLeft: "0.5vh",
-                                         backgroundColor: recordIndex % 2 === 0 ? '#f0f8ff' : '#ffe4e1', // Light blue for even, light pink for odd
-                                       }}
-                                     >
-                                            {record.class}
-                                            {/* {index} */}
+                                        <div
+                                            key={recordIndex}
+                                            className={`border rounded px-1 ${recordIndex % 2 === 0 ? 'border-primary' : 'border-secondary'}`}
+                                            style={{
+                                                marginBottom: "0.5vh",
+                                                position: "relative",
+                                                marginRight: "0.5vh",
+                                                marginLeft: "0.5vh",
+                                                backgroundColor: recordIndex % 2 === 0 ? '#f0f8ff' : '#ffe4e1', // Light blue for even, light pink for odd
+                                            }}
+                                        >
+                                            <div style={{fontSize : '1vw'}}>
+                                                <p> {record.class} {record.time}</p>
+                                                    {/* <h6>{record.class}</h6>                                                */}
+                                                {/* {index} */}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -581,3 +361,9 @@ const Calendar = ({ selectedResourceId }) => {
 };
 
 export default Calendar;
+
+
+
+
+
+

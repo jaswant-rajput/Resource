@@ -60,6 +60,8 @@ const Navbar = ({ onResourceSelect }) => {
 
 
   const [anchorEls, setAnchorEls] = useState({});
+  const [confirm, setConfirm] = useState(false);
+  const [resourceIdToDelete, setResourceIdToDelete] = useState(null);
 
   const { triggerRefresh } = useRefresh();
 
@@ -696,7 +698,6 @@ const Navbar = ({ onResourceSelect }) => {
       ...prevAnchorEls,
       [resourceId]: event.currentTarget,
     }));
-    console.log(resourceId);
   };
 
   const handleMenuClose = (resourceId) => {
@@ -704,18 +705,22 @@ const Navbar = ({ onResourceSelect }) => {
       ...prevAnchorEls,
       [resourceId]: null,
     }));
-    console.log('hello', resourceId);
   };
 
-  const handleDeleteResource = async (resourceId) => {
-    try {
-      await deleteResource(resourceId);
-      // Update the state to remove the deleted resource
-      setResources((prevResources) => prevResources.filter(resource => resource._id !== resourceId));
-      handleMenuClose(resourceId);
-      console.log('Resource deleted successfully');
-    } catch (error) {
-      console.error('Failed to delete resource:', error);
+  const handleDeleteResource = async () => {
+    if (resourceIdToDelete) {
+      try {
+        await deleteResource(resourceIdToDelete);
+        // Update the state to remove the deleted resource
+        setResources((prevResources) => prevResources.filter(resource => resource._id !== resourceIdToDelete));
+        handleMenuClose(resourceIdToDelete);
+        setConfirm(false);
+        console.log('Resource deleted successfully');
+        triggerAlert('Successfully Deleted Resource', 'success');
+      } catch (error) {
+        console.error('Failed to delete resource:', error);
+        triggerAlert('Failed To Delete Resource', 'error');
+      }
     }
   };
 
@@ -727,12 +732,20 @@ const Navbar = ({ onResourceSelect }) => {
       open={Boolean(anchorEls[resourceId])}
       onClose={() => handleMenuClose(resourceId)}
     >
-      <MenuItem onClick={() => handleDeleteResource(resourceId)}>Delete Resource</MenuItem>
+      <MenuItem onClick={() => handleConfirmationOpen(resourceId)}>Delete Resource</MenuItem>
     </Menu>
   );
 
 
+  const handleConfirmationOpen = (resourceId) => {
+    setConfirm(true);
+    setResourceIdToDelete(resourceId);
+  };
 
+  const handleConfirmationClose = () => {
+    setConfirm(false);
+    setResourceIdToDelete(null);
+  };
 
 
 
@@ -1071,6 +1084,20 @@ const Navbar = ({ onResourceSelect }) => {
           {alertMessage}
         </Alert>
       </Dialog>
+
+
+      <Dialog open={confirm} onClose={handleConfirmationClose}>
+        <DialogContent>
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <p>Are you sure you want to delete this resource?</p>
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteResource}>Delete</Button>
+          <Button onClick={handleConfirmationClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
     </div>
   );
 
