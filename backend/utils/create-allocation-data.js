@@ -17,25 +17,32 @@ const makeAllocationData = (resource) => {
 	const now = new Date();
 	const year = now.getFullYear();
 	const month = now.getMonth();
-	const startDate = new Date(year, month, 2);
-	const endDate = new Date(year, month + 1, 1);
+  
+	// Create startDate and endDate without time part using date truncation
+	let startDate = new Date(year, month, 2);
+	let endDate = new Date(year, month + 1, 1);
+  
 	const dates = [];
-
-
+  
 	while (startDate <= endDate) {
-		dates.push(new Date(startDate));
-		startDate.setDate(startDate.getDate() + 1);
+	  // Truncate time by creating a new date with only the date part
+	  const truncatedDate = new Date(startDate.toISOString().split('T')[0]);
+	  dates.push(truncatedDate);
+	  startDate.setDate(startDate.getDate() + 1);
 	}
-
-    return dates.map(day => {
-        return {
-            resourceObjectId: resource._id,
-            startdate: day,
-            defaultAllocation: [],
-            allocationRecords: []
-        }
-    })
-}
+  
+	return dates.map(day => {
+	  // Ensure time part is truncated by creating a new date with only the date part
+	  const truncatedDay = new Date(day.toISOString().split('T')[0]);
+	  return {
+		resourceObjectId: resource._id,
+		startdate: truncatedDay,
+		defaultAllocation: [],
+		allocationRecords: []
+	  };
+	});
+  }
+  
 
 
 // Creates and inserts allocation data for all available resources

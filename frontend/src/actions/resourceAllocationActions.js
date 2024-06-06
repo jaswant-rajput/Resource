@@ -13,20 +13,21 @@ export const getAllocationByMonth = (id,year,month) => {
         .catch(err => console.log(err))
 }
 
-export const getAllocationId = (id,startdate,enddate) => {
-    return fetch(`${ENDPOINT_URL}/get-allocation-id?id=${id}&startdate=${startdate}&enddate=${enddate}`, {
-        method: "GET",
-        headers: {
-            Accept: 'application/json',
-            'Content-type': 'application/json'
-        }
-    })
-        .then(response => response.json())
-        .catch(err => console.log(err))
+export const getAllocationId = (id, startdate, enddate) => {
+  return fetch(`${ENDPOINT_URL}/get-allocation-id?id=${id}&startdate=${startdate}&enddate=${enddate}`, {
+    method: "GET",
+    headers: {
+      Accept: 'application/json',
+      'Content-type': 'application/json'
+    }
+  })
+    .then(response => response.json())
+    .catch(err => console.log(err))
 }
 
 export const addAllocation = (data) => {
 	// req.body = { resourceObjectId : <resourceObjectId>, dates: <array of all dates>, allocation: <object of new allocation to be added> }
+	console.log("data sent to backend for addAllocation:",data)
     return fetch(`${ENDPOINT_URL}/add-allocation`, {
 		method: "PATCH",
 		headers: {
@@ -58,6 +59,7 @@ export const removeAllocation = (data) => {
 		throw err;
 	})
 }
+
 
 export const setDefaultAllocation = (resourceObjectId, defaultAllocations) => {
 	return fetch(`${ENDPOINT_URL}/set-default-allocation/${resourceObjectId}`, {
