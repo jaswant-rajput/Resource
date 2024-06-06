@@ -9,18 +9,21 @@ import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import Alert from '@mui/material/Alert';
 import MenuItem from '@mui/material/MenuItem';
+import Menu from '@mui/material/Menu';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
-import { getAllResources, createResource } from '../actions/resourceActions';
+import { getAllResources, createResource, deleteResource } from '../actions/resourceActions';
 import { addAllocation, setDefaultAllocation, getAllocationByMonth } from '../actions/resourceAllocationActions';
 import { useEffect, useState } from 'react';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
+import IconButton from '@mui/material/IconButton';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useRefresh } from './RefreshContext';
 
 
@@ -54,6 +57,11 @@ const Navbar = ({ onResourceSelect }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [isWeekDayChecked, setIsWeekDayChecked] = useState(false);
+
+
+  const [anchorEls, setAnchorEls] = useState({});
+  const [confirm, setConfirm] = useState(false);
+  const [resourceIdToDelete, setResourceIdToDelete] = useState(null);
 
   const { triggerRefresh } = useRefresh();
 
@@ -307,64 +315,64 @@ const Navbar = ({ onResourceSelect }) => {
     // Ensure starttime and endtime are dayjs instances
     const start = dayjs(starttime);
     const end = dayjs(endtime);
-  
+
     if (!start.isValid() || !end.isValid()) {
       console.error('Invalid start time or end time');
       triggerAlert('Invalid start time or end time', 'error');
       return;
     }
-  
+
     const formattedStartTime = start.format('h:mm A');
     const formattedEndTime = end.format('h:mm A');
     const tempformattedTime = `${formattedStartTime} - ${formattedEndTime}`;
-  
+
     // Convert date string to a Date object
     const parsedDate = new Date(date);
-  
+
     if (!(parsedDate instanceof Date) || isNaN(parsedDate)) {
       console.error('Invalid date value');
       triggerAlert('Invalid Date Value', 'error');
       return;
     }
-  
+
     // Format the date to ISO string with timezone offset set to zero (UTC)
     const formattedDate = parsedDate.toISOString().split('T')[0]; // Only take the date part
     const year = parsedDate.getFullYear();
     const month = parsedDate.getMonth() + 1; // getMonth() is zero-based
-  
+
     // Fetch existing allocations for the month and resource
     try {
       const existingAllocations = await getAllocationByMonth(resourceId, year, month);
       console.log('Existing allocations:', existingAllocations);
-  
+
       if (existingAllocations && Array.isArray(existingAllocations.data)) {
         const allocationExists = existingAllocations.data.some(allocation => {
           if (!allocation.startdate) {
             console.error('Invalid startdate in allocation:', allocation);
             return false;
           }
-  
+
           const allocationDate = new Date(allocation.startdate).toISOString().split('T')[0];
           if (allocationDate === formattedDate) {
             if (!allocation.allocationRecords || !Array.isArray(allocation.allocationRecords)) {
               return false;
             }
-  
+
             return allocation.allocationRecords.some(record => {
               if (!record.time) {
                 console.error('Invalid time in record:', record);
                 return false;
               }
-  
+
               const allocationTimes = record.time.split(' - ');
               if (allocationTimes.length !== 2) {
                 console.error('Invalid time format in record:', record);
                 return false;
               }
-  
+
               const allocationStart = dayjs(allocationTimes[0], 'h:mm A');
               const allocationEnd = dayjs(allocationTimes[1], 'h:mm A');
-  
+
               console.log(`Checking allocation on date ${allocationDate} with time ${record.time}`);
               console.log(`New allocation start time: ${formattedStartTime}, end time: ${formattedEndTime}`);
               console.log(`Existing allocation start time: ${allocationStart.format('h:mm A')}, end time: ${allocationEnd.format('h:mm A')}`);
@@ -374,7 +382,7 @@ const Navbar = ({ onResourceSelect }) => {
           }
           return false;
         });
-  
+
         if (allocationExists) {
           triggerAlert('Allocation already exists for the selected date and time', 'error');
           return;
@@ -389,7 +397,7 @@ const Navbar = ({ onResourceSelect }) => {
       triggerAlert('Error fetching existing allocations', 'error');
       return;
     }
-  
+
     const allocationData = {
       resourceObjectId: resourceId,
       dates: [parsedDate.toISOString()],
@@ -399,7 +407,7 @@ const Navbar = ({ onResourceSelect }) => {
         time: tempformattedTime
       }
     };
-  
+
     if (resourceId && formattedDate && classInput && description && tempformattedTime) {
       addAllocation(JSON.stringify(allocationData))
         .then(response => {
@@ -414,7 +422,7 @@ const Navbar = ({ onResourceSelect }) => {
     } else {
       triggerAlert('Fill in All the fields', 'error');
     }
-  
+
     handleSingleDayClose();
   };
 
@@ -508,32 +516,32 @@ const Navbar = ({ onResourceSelect }) => {
     // Ensure starttime and endtime are dayjs instances
     const start = dayjs(starttime);
     const end = dayjs(endtime);
-  
+
     if (!start.isValid() || !end.isValid()) {
       console.error('Invalid start time or end time');
       triggerAlert('Invalid start time or end time', 'error');
       return;
     }
-  
+
     const formattedStartTime = start.format('h:mm A');
     const formattedEndTime = end.format('h:mm A');
     const tempformattedTime = `${formattedStartTime} - ${formattedEndTime}`;
-  
+
     // Convert start and end dates to Date objects
     const parsedStartDate = new Date(startDate);
     const parsedEndDate = new Date(endDate);
-  
+
     if (!(parsedStartDate instanceof Date) || isNaN(parsedStartDate) ||
       !(parsedEndDate instanceof Date) || isNaN(parsedEndDate)) {
       console.error('Invalid start or end date value');
       triggerAlert('Invalid start or end date value', 'error');
       return;
     }
-  
+
     // Generate an array of dates from start to end date
     const datesArray = [];
     let currentDate = parsedStartDate;
-  
+
     if (isWeekDayChecked) { // Check if the checkbox is checked
       while (currentDate <= parsedEndDate) {
         datesArray.push(new Date(currentDate).toISOString());
@@ -545,47 +553,47 @@ const Navbar = ({ onResourceSelect }) => {
         currentDate.setDate(currentDate.getDate() + 1); // Increment by 1 day
       }
     }
-  
+
     console.log('Generated Dates Array:', datesArray);
-  
+
     // Check for overlapping allocations
     try {
       for (let date of datesArray) {
         const parsedDate = new Date(date);
         const year = parsedDate.getFullYear();
         const month = parsedDate.getMonth() + 1; // getMonth() is zero-based
-  
+
         const existingAllocations = await getAllocationByMonth(resourceId, year, month);
         console.log('Existing allocations:', existingAllocations);
-  
+
         if (existingAllocations && Array.isArray(existingAllocations.data)) {
           const allocationExists = existingAllocations.data.some(allocation => {
             if (!allocation.startdate) {
               console.error('Invalid startdate in allocation:', allocation);
               return false;
             }
-  
+
             const allocationDate = new Date(allocation.startdate).toISOString().split('T')[0];
             if (allocationDate === date.split('T')[0]) {
               if (!allocation.allocationRecords || !Array.isArray(allocation.allocationRecords)) {
                 return false;
               }
-  
+
               return allocation.allocationRecords.some(record => {
                 if (!record.time) {
                   console.error('Invalid time in record:', record);
                   return false;
                 }
-  
+
                 const allocationTimes = record.time.split(' - ');
                 if (allocationTimes.length !== 2) {
                   console.error('Invalid time format in record:', record);
                   return false;
                 }
-  
+
                 const allocationStart = dayjs(allocationTimes[0], 'h:mm A');
                 const allocationEnd = dayjs(allocationTimes[1], 'h:mm A');
-  
+
                 console.log(`Checking allocation on date ${allocationDate} with time ${record.time}`);
                 console.log(`New allocation start time: ${formattedStartTime}, end time: ${formattedEndTime}`);
                 console.log(`Existing allocation start time: ${allocationStart.format('h:mm A')}, end time: ${allocationEnd.format('h:mm A')}`);
@@ -595,7 +603,7 @@ const Navbar = ({ onResourceSelect }) => {
             }
             return false;
           });
-  
+
           if (allocationExists) {
             triggerAlert(`Allocation already exists for the selected date (${date.split('T')[0]}) and time`, 'error');
             return;
@@ -611,7 +619,7 @@ const Navbar = ({ onResourceSelect }) => {
       triggerAlert('Error fetching existing allocations', 'error');
       return;
     }
-  
+
     const allocationData = {
       resourceObjectId: resourceId,
       dates: datesArray,
@@ -621,9 +629,9 @@ const Navbar = ({ onResourceSelect }) => {
         time: tempformattedTime
       }
     };
-  
+
     console.log('Formatted Allocation Data:', allocationData);
-  
+
     if (resourceId && datesArray.length > 0 && classInput && description && tempformattedTime) {
       addAllocation(JSON.stringify(allocationData))
         .then(response => {
@@ -640,7 +648,7 @@ const Navbar = ({ onResourceSelect }) => {
       triggerAlert('Fill in All the fields', 'error');
     }
   };
-  
+
 
 
 
@@ -665,9 +673,8 @@ const Navbar = ({ onResourceSelect }) => {
       time: tempformattedTime
     };
 
-    if(tempformattedTime && classInput)
-      {
-        setDefaultAllocation(resourceId, JSON.stringify(allocationData))
+    if (tempformattedTime && classInput) {
+      setDefaultAllocation(resourceId, JSON.stringify(allocationData))
         .then(response => {
           console.log('Response from set default allocation:', response);
           triggerAlert('Successfully set default allocation', 'success');
@@ -677,18 +684,68 @@ const Navbar = ({ onResourceSelect }) => {
           triggerAlert('Failed to set default allocation', 'error');
         });
 
-      }
-      else
-      {
-        triggerAlert('Please Fill in All the fields','error')
-      }
+    }
+    else {
+      triggerAlert('Please Fill in All the fields', 'error')
+    }
 
-      handleDefaultAllocationClose();
+    handleDefaultAllocationClose();
 
   }
 
+  const handleMenuClick = (event, resourceId) => {
+    setAnchorEls((prevAnchorEls) => ({
+      ...prevAnchorEls,
+      [resourceId]: event.currentTarget,
+    }));
+  };
+
+  const handleMenuClose = (resourceId) => {
+    setAnchorEls((prevAnchorEls) => ({
+      ...prevAnchorEls,
+      [resourceId]: null,
+    }));
+  };
+
+  const handleDeleteResource = async () => {
+    if (resourceIdToDelete) {
+      try {
+        await deleteResource(resourceIdToDelete);
+        // Update the state to remove the deleted resource
+        setResources((prevResources) => prevResources.filter(resource => resource._id !== resourceIdToDelete));
+        handleMenuClose(resourceIdToDelete);
+        setConfirm(false);
+        console.log('Resource deleted successfully');
+        triggerAlert('Successfully Deleted Resource', 'success');
+      } catch (error) {
+        console.error('Failed to delete resource:', error);
+        triggerAlert('Failed To Delete Resource', 'error');
+      }
+    }
+  };
+
+  const renderMenu = (resourceId) => (
+    <Menu
+      key={resourceId}
+      anchorEl={anchorEls[resourceId]}
+      keepMounted
+      open={Boolean(anchorEls[resourceId])}
+      onClose={() => handleMenuClose(resourceId)}
+    >
+      <MenuItem onClick={() => handleConfirmationOpen(resourceId)}>Delete Resource</MenuItem>
+    </Menu>
+  );
 
 
+  const handleConfirmationOpen = (resourceId) => {
+    setConfirm(true);
+    setResourceIdToDelete(resourceId);
+  };
+
+  const handleConfirmationClose = () => {
+    setConfirm(false);
+    setResourceIdToDelete(null);
+  };
 
 
 
@@ -714,13 +771,32 @@ const Navbar = ({ onResourceSelect }) => {
 
       <div style={{ width: '16vw', marginRight: "1.7vw", height: '61vh', marginTop: '2.1vh', overflowY: 'scroll', scrollbarWidth: 'none' }} className='border border-secondary'>
         {resources.map((resource, index) => (
+          <div key={resource._id}>
+            <div className='border border-primary p-1 m-2' style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => handleCombinedChange(resource)}>
+              <h6>{resource.resourceType} : {resource.resourceNo}</h6>
+              <IconButton
+                aria-label="more"
+                aria-controls={`long-menu-${resource._id}`}
+                aria-haspopup="true"
+                onClick={(event) => handleMenuClick(event, resource._id)}
+              >
+                <MoreVertIcon />
+              </IconButton>
+              {renderMenu(resource._id)}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* <div style={{ width: '16vw', marginRight: "1.7vw", height: '61vh', marginTop: '2.1vh', overflowY: 'scroll', scrollbarWidth: 'none' }} className='border border-secondary'>
+        {resources.map((resource, index) => (
           <div key={resource._id} >
             <div className='border border-primary p-1 m-2' onClick={() => handleCombinedChange(resource)}>
               <h6>{resource.resourceType} : {resource.resourceNo}</h6>
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
 
 
       <Dialog open={open} onClose={handleClose}>
@@ -1008,6 +1084,20 @@ const Navbar = ({ onResourceSelect }) => {
           {alertMessage}
         </Alert>
       </Dialog>
+
+
+      <Dialog open={confirm} onClose={handleConfirmationClose}>
+        <DialogContent>
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <p>Are you sure you want to delete this resource?</p>
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteResource}>Delete</Button>
+          <Button onClick={handleConfirmationClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
     </div>
   );
 
