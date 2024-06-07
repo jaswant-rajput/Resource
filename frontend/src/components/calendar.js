@@ -304,9 +304,9 @@ const Calendar = ({ selectedResourceId }) => {
                                                 backgroundColor: recordIndex % 2 === 0 ? '#f0f8ff' : '#ffe4e1', // Light blue for even, light pink for odd
                                             }}
                                         >
-                                            <div style={{fontSize : '1vw'}}>
+                                            <div style={{ fontSize: '1vw' }}>
                                                 <p> {record.class} {record.time}</p>
-                                                    {/* <h6>{record.class}</h6>                                                */}
+                                                {/* <h6>{record.class}</h6>                                                */}
                                                 {/* {index} */}
                                             </div>
                                         </div>
