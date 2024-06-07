@@ -25,29 +25,9 @@ export const getAllocationId = (id, startdate, enddate) => {
     .catch(err => console.log(err))
 }
 
-// export const addAllocation = (resourceObjectId, dates, allocation) => {
-// 	console.log("data from backend",resourceObjectId,dates,allocation)
-//     return fetch(`${ENDPOINT_URL}/add-allocation`, {
-// 		method: "PATCH",
-// 		headers: {
-// 			Accept: 'application/json',
-// 			'Content-type': 'application/json'
-// 		},
-// 		body: JSON.stringify({
-// 			resourceObjectId: resourceObjectId,
-// 			dates: dates,
-// 			allocation: allocation
-// 		})
-// 	})
-// 	.then(response => response.json())
-// 	.catch(err => {
-// 		console.error('Error adding allocation:', err);
-// 		throw err;
-// 	})
-// }
-
 export const addAllocation = (data) => {
-	console.log("data from actions backend",data)
+	// req.body = { resourceObjectId : <resourceObjectId>, dates: <array of all dates>, allocation: <object of new allocation to be added> }
+	console.log("data sent to backend for addAllocation:",data)
     return fetch(`${ENDPOINT_URL}/add-allocation`, {
 		method: "PATCH",
 		headers: {
@@ -63,26 +43,8 @@ export const addAllocation = (data) => {
 	})
 }
 
-// export const removeAllocation = (id, allocation) => {
-// 	return fetch(`${ENDPOINT_URL}/remove-allocation`, {
-// 		method: "DELETE",
-// 		headers: {
-// 			Accept: 'application/json',
-// 			'Content-type': 'application/json'
-// 		},
-// 		body: JSON.stringify({
-// 			_id: id,
-// 			allocation: allocation
-// 		})
-// 	})
-// 	.then(response => response.json())
-// 	.catch(err => {
-// 		console.error('Error removing allocation:', err);
-// 		throw err;
-// 	})
-// }
-
 export const removeAllocation = (data) => {
+	// req.body = { resourceObjectId : <resourceObjectId>, dates: <array of all dates>, time: <time field of allocation to be removed> }
 	return fetch(`${ENDPOINT_URL}/remove-allocation`, {
 		method: "DELETE",
 		headers: {
@@ -109,13 +71,6 @@ export const setDefaultAllocation = (resourceObjectId, defaultAllocations) => {
 		body: defaultAllocations
 	})
 	.then(response => response.json())
-	.then(data => {
-		if (data.success) {
-			return data.status;
-		} else {
-			throw new Error(data.error);
-		}
-	})
 	.catch(err => {
 		console.error('Error setting default allocation:', err);
 		throw err;
