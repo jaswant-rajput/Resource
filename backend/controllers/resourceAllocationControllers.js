@@ -61,42 +61,16 @@ exports.addAllocation = async(req,res) =>{
 
 // Remove allocation
 exports.removeAllocation = async(req,res) =>{
-    /*try {
+    try {
         // req.body = { resourceObjectId : <resourceObjectId>, dates: <array of all dates>, time: <time field of allocation to be removed> }
-        const response = await ResourceAllocation.findByIdAndUpdate(req.body._id,
-            { $pull : { allocationRecords: req.body.allocation } },
+        const response = await ResourceAllocation.updateMany(
+            { resourceObjectId: req.body.resourceObjectId, startdate: { $in : req.body.dates }},
+            { $pull : { allocationRecords: { time: req.body.time } } },
             { new: true })
         res.json({
             success: true,
             data: response
         })
-    } catch(err) {
-        res.json({
-            success: false,
-            error: err
-        })
-    }*/
-    try {
-        const response = await ResourceAllocation.findById(req.body.resourceObjectId)
-
-        let records = response.allocationRecords
-        records.splice(records.findIndex(obj => (obj.time==req.body.time)), 1)
-
-        try {
-            const response2 = await ResourceAllocation.updateMany(
-                { resourceObjectId: req.body.resourceObjectId, startdate: { $in : req.body.dates }},
-                { allocationRecords: records },
-                { new: true })
-            res.json({
-                message: "Success, allocation removed",
-                data: response2
-            })
-        } catch(err) {
-            res.json({
-                message: "Fail, allocation not removed",
-                error: err
-            })
-        }
     } catch(err) {
         res.json({
             success: false,
