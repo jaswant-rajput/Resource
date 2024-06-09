@@ -105,6 +105,7 @@ exports.removeAllocation = async(req,res) =>{
     }
 }
 
+
 exports.getAllocationByMonth = async(req,res) => {
     try {
         const year = parseInt(req.query.year);
