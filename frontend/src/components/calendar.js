@@ -150,27 +150,26 @@ const Calendar = ({ selectedResourceId }) => {
         const formattedStartDate = new Date(startdate);
         formattedStartDate.setDate(formattedStartDate.getDate() + 1);
         const nextDay = formattedStartDate.toISOString().split('T')[0];
-
-
+    
         allocationData.forEach((data) => {
             const allocationStartDate = new Date(data.startdate).toISOString().split('T')[0];
             if (allocationStartDate === nextDay) {
                 outerId = data._id;
             }
         });
-
+    
         if (!outerId) {
             console.error('No matching allocation data found for the selected date');
             triggerAlert('No matching allocation data found for the selected date', 'error');
             return;
         }
-
+    
         console.log('Found outerId:', outerId);
-
+    
         // Perform the deletion logic here (e.g., update the state or make an API call)
         const updatedAllocations = selectedDateAllocations.filter(item => item._id !== allocation._id);
         setSelectedDateAllocations(updatedAllocations);
-
+    
         setAllocationData(allocationData.map(data => {
             if (data._id === outerId) {
                 return {
@@ -180,20 +179,22 @@ const Calendar = ({ selectedResourceId }) => {
             }
             return data;
         }));
-
-        // Prepare the data for the delete request in the required format
-        const deleteData = {
-            _id: outerId,
-            allocation: {
-                class: allocation.class,
-                description: allocation.description,
-                time: allocation.time,
-                _id: allocation._id
-            }
+    
+        // Format dates to 'YYYY-MM-DD 00:00:00.000Z'
+        const formatToDate = (dateString) => {
+            const date = new Date(dateString);
+            date.setUTCHours(0, 0, 0, 0);
+            return date.toISOString().replace('T', ' ').replace('.000Z', ':00.000Z');
         };
-
+    
+        const deleteData = {
+            resourceObjectId: selectedResourceId,
+            dates: [formatToDate(nextDay)],
+            time: allocation.time
+        };
+    
         console.log('deletion data', deleteData);
-
+    
         removeAllocation(JSON.stringify(deleteData))
             .then(response => {
                 console.log('Response for delete:', response);
@@ -203,10 +204,12 @@ const Calendar = ({ selectedResourceId }) => {
                 console.log('Error from delete:', err);
                 triggerAlert('Failed to delete allocation', 'error');
             });
-
+    
         setSelectedAllocation(null);
         setOpen(updatedAllocations.length > 0);
     };
+    
+    
 
     const handleMonthChange = (event) => {
         const selectedMonth = event.target.value;
@@ -252,7 +255,7 @@ const Calendar = ({ selectedResourceId }) => {
     return (
         <div>
             {/* <p>Default Allocation is {defaultclass} {time}</p> */}
-            {/* <p>Selected Resource Id is : {selectedResourceId}</p> */}
+            <p>Selected Resource Id is : {selectedResourceId}</p>
             <div className='border border-primary p-2'>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h6 className='text-start' style={{ marginBottom: 0 }}>
@@ -306,7 +309,7 @@ const Calendar = ({ selectedResourceId }) => {
                                         >
                                             <div style={{ fontSize: '0.9vw' }}>
                                                 <p> {record.class} {record.time}</p>
-                                                {/* <h6>{record.class}</h6>                                                */}
+                                                {/* <h6>{record.class}</h6>*/}
                                                 {/* {index} */}
                                             </div>
                                         </div>
