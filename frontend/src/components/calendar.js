@@ -255,7 +255,7 @@ const Calendar = ({ selectedResourceId }) => {
     return (
         <div>
             {/* <p>Default Allocation is {defaultclass} {time}</p> */}
-            <p>Selected Resource Id is : {selectedResourceId}</p>
+            {/* <p>Selected Resource Id is : {selectedResourceId}</p> */}
             <div className='border border-primary p-2'>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h6 className='text-start' style={{ marginBottom: 0 }}>
