@@ -14,10 +14,11 @@ import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { InputLabel, FormControl } from '@mui/material';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { getAllResources, createResource, deleteResource } from '../actions/resourceActions';
-import { addAllocation, setDefaultAllocation, getAllocationByMonth } from '../actions/resourceAllocationActions';
+import { addAllocation, setDefaultAllocation, getAllocationByMonth, removeAllocation } from '../actions/resourceAllocationActions';
 import { useEffect, useState } from 'react';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -52,6 +53,10 @@ const Navbar = ({ onResourceSelect }) => {
   const [description, setDescription] = useState('');
   const [starttime, setStartTime] = useState('');
   const [endtime, setEndTime] = useState('');
+  const [department, setDepartment] = useState('')
+
+
+  const departments = ['Computer Science', 'Electrical Engineering', 'Mechanical Engineering', 'Civil Engineering', 'Business Administration'];
 
   const [multipleDayOpen, setMultipleDayOpen] = useState(false);
   const [startDate, setStartDate] = useState('');
@@ -62,6 +67,11 @@ const Navbar = ({ onResourceSelect }) => {
   const [anchorEls, setAnchorEls] = useState({});
   const [confirm, setConfirm] = useState(false);
   const [resourceIdToDelete, setResourceIdToDelete] = useState(null);
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [existingAllocations, setExistingAllocations] = useState([]);
+
 
   const { triggerRefresh } = useRefresh();
 
@@ -139,6 +149,7 @@ const Navbar = ({ onResourceSelect }) => {
     setClassInput('')
     setDescription('')
     setDate('')
+    setDepartment('')
   };
 
   const handleMultipleDayOpen = () => {
@@ -154,6 +165,7 @@ const Navbar = ({ onResourceSelect }) => {
     setStartDate('')
     setEndDate('')
     setDescription('')
+    setDepartment('')
   };
 
   const handleDefaultAllocationOpen = () => {
@@ -404,11 +416,12 @@ const Navbar = ({ onResourceSelect }) => {
       allocation: {
         class: classInput,
         description: description,
-        time: tempformattedTime
+        time: tempformattedTime,
+        department : department
       }
     };
 
-    if (resourceId && formattedDate && classInput && description && tempformattedTime) {
+    if (resourceId && formattedDate && classInput && description && tempformattedTime && department) {
       addAllocation(JSON.stringify(allocationData))
         .then(response => {
           triggerRefresh();
@@ -626,13 +639,14 @@ const Navbar = ({ onResourceSelect }) => {
       allocation: {
         class: classInput,
         description: description,
-        time: tempformattedTime
+        time: tempformattedTime,
+        department : department
       }
     };
 
     console.log('Formatted Allocation Data:', allocationData);
 
-    if (resourceId && datesArray.length > 0 && classInput && description && tempformattedTime) {
+    if (resourceId && datesArray.length > 0 && classInput && description && tempformattedTime && department) {
       addAllocation(JSON.stringify(allocationData))
         .then(response => {
           triggerRefresh();
@@ -715,6 +729,7 @@ const Navbar = ({ onResourceSelect }) => {
         setResources((prevResources) => prevResources.filter(resource => resource._id !== resourceIdToDelete));
         handleMenuClose(resourceIdToDelete);
         setConfirm(false);
+        triggerRefresh();
         console.log('Resource deleted successfully');
         triggerAlert('Successfully Deleted Resource', 'success');
       } catch (error) {
@@ -724,6 +739,9 @@ const Navbar = ({ onResourceSelect }) => {
     }
   };
 
+  
+  
+  
   const renderMenu = (resourceId) => (
     <Menu
       key={resourceId}
@@ -747,6 +765,75 @@ const Navbar = ({ onResourceSelect }) => {
     setResourceIdToDelete(null);
   };
 
+  const handleDeleteClose = () => {
+    setDeleteDialogOpen(false);
+  };
+
+  const handleConfirmClose = () => {
+    setConfirmDialogOpen(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    // Ensure starttime and endtime are dayjs instances
+    const start = dayjs(starttime, 'HH:mm');
+    const end = dayjs(endtime, 'HH:mm');
+
+    if (!start.isValid() || !end.isValid()) {
+      console.error('Invalid start time or end time');
+      triggerAlert('Invalid start time or end time', 'error');
+      return;
+    }
+
+    const formattedStartTime = start.format('h:mm A');
+    const formattedEndTime = end.format('h:mm A');
+    const tempformattedTime = `${formattedStartTime} - ${formattedEndTime}`;
+
+    // Convert start and end dates to Date objects
+    const parsedStartDate = new Date(startDate);
+    const parsedEndDate = new Date(endDate);
+
+    if (!(parsedStartDate instanceof Date) || isNaN(parsedStartDate) ||
+      !(parsedEndDate instanceof Date) || isNaN(parsedEndDate)) {
+      console.error('Invalid start or end date value');
+      triggerAlert('Invalid start or end date value', 'error');
+      return;
+    }
+
+    // Generate an array of dates from start to end date
+    const datesArray = [];
+    let currentDate = parsedStartDate;
+
+    while (currentDate <= parsedEndDate) {
+      datesArray.push(new Date(currentDate).toISOString());
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    console.log('Generated Dates Array:', datesArray);
+
+    // Prepare the data for deletion
+    const deleteData = {
+      resourceObjectId: resourceId,
+      dates: datesArray,
+      time: tempformattedTime
+    };
+
+    console.log('Deletion Data:', deleteData);
+
+    try {
+      const response = await removeAllocation(JSON.stringify(deleteData));
+      console.log('Response from delete allocation:', response);
+      triggerAlert('Successfully deleted allocation', 'success');
+      setDeleteDialogOpen(false);
+      triggerRefresh(); // Refresh the page or data
+    } catch (err) {
+      console.error('Failed to delete allocation:', err);
+      triggerAlert('Failed to delete allocation', 'error');
+    }
+  };
+
+
+
+
 
 
 
@@ -756,6 +843,12 @@ const Navbar = ({ onResourceSelect }) => {
       <div>
         <button type="button" className="btn btn-primary rounded-pill" style={{ width: '16vw', marginBottom: '1.2vw', marginTop: '0.8vw', marginRight: '0.1vw' }} onClick={handleOpen}>
           Create
+        </button>
+      </div>
+
+      <div>
+        <button type="button" className="btn btn-primary rounded-pill" style={{ width: '16vw', marginBottom: '1.2vw', marginTop: '0.8vw', marginRight: '0.1vw' }} onClick={() => setDeleteDialogOpen(true)}>
+          Delete
         </button>
       </div>
 
@@ -883,6 +976,21 @@ const Navbar = ({ onResourceSelect }) => {
           </div>
 
           <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Department</InputLabel>
+              <Select
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                label="Department"
+              >
+                {departments.map((dept) => (
+                  <MenuItem key={dept} value={dept}>{dept}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
             <TextField
               label="Class"
               value={classInput}
@@ -980,6 +1088,21 @@ const Navbar = ({ onResourceSelect }) => {
           </FormGroup>
 
           <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Department</InputLabel>
+              <Select
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                label="Department"
+              >
+                {departments.map((dept) => (
+                  <MenuItem key={dept} value={dept}>{dept}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
             <TextField
               label="Class"
               value={classInput}
@@ -1075,6 +1198,71 @@ const Navbar = ({ onResourceSelect }) => {
           <Button onClick={handleDefaultAllocationClose}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteClose}>
+        <DialogTitle>Delete Allocations</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Start Date"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            fullWidth
+            margin="normal"
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            label="End Date"
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            fullWidth
+            margin="normal"
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            label="Start Time"
+            type="time"
+            value={starttime}
+            onChange={(e) => setStartTime(e.target.value)}
+            fullWidth
+            margin="normal"
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            label="End Time"
+            type="time"
+            value={endtime}
+            onChange={(e) => setEndTime(e.target.value)}
+            fullWidth
+            margin="normal"
+            InputLabelProps={{ shrink: true }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteConfirm}>Delete</Button>
+          <Button onClick={handleDeleteClose}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* <Dialog open={deleteDialogOpen} onClose={handleDeleteClose}>
+  <DialogTitle>Delete Allocations</DialogTitle>
+  <DialogContent>
+    {existingAllocations.map((allocation, index) => (
+      <div key={index}>
+        <p>Class: {allocation.class}</p>
+        <p>Description: {allocation.description}</p>
+        <p>Time: {allocation.time}</p>
+      </div>
+    ))}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={handleConfirmDelete}>Confirm Delete</Button>
+    <Button onClick={handleDeleteClose}>Cancel</Button>
+  </DialogActions>
+</Dialog> */}
+
+
 
 
 
