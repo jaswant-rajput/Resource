@@ -19,6 +19,7 @@ const Calendar = ({ selectedResourceId }) => {
     const [time, setTime] = useState('');
 
     const { refresh, resetRefresh } = useRefresh();
+    const { triggerRefresh } = useRefresh();
 
     const [alertMessage, setAlertMessage] = useState('');
     const [severity, setSeverity] = useState('');
@@ -39,20 +40,6 @@ const Calendar = ({ selectedResourceId }) => {
         { number: 10, name: 'November' },
         { number: 11, name: 'December' }
     ];
-    // const months = [
-    //     { number: 1, name: 'January' },
-    //     { number: 2, name: 'February' },
-    //     { number: 3, name: 'March' },
-    //     { number: 4, name: 'April' },
-    //     { number: 5, name: 'May' },
-    //     { number: 6, name: 'June' },
-    //     { number: 7, name: 'July' },
-    //     { number: 8, name: 'August' },
-    //     { number: 9, name: 'September' },
-    //     { number: 10, name: 'October' },
-    //     { number: 11, name: 'November' },
-    //     { number: 12, name: 'December' }
-    // ];
 
     useEffect(() => {
         if (selectedResourceId) {
@@ -198,6 +185,7 @@ const Calendar = ({ selectedResourceId }) => {
         removeAllocation(JSON.stringify(deleteData))
             .then(response => {
                 console.log('Response for delete:', response);
+                triggerRefresh();
                 triggerAlert('Successfully deleted allocation', 'success');
             })
             .catch(err => {
@@ -344,7 +332,11 @@ const Calendar = ({ selectedResourceId }) => {
                             <DialogContentText>
                                 <strong>Time:</strong> {allocation.time}
                             </DialogContentText>
+                            <DialogContentText>
+                                <strong>Department:</strong> {allocation.department}
+                            </DialogContentText>
                         </div>
+                        
                     ))}
                 </DialogContent>
                 <DialogActions>

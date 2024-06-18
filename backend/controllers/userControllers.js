@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const { generateRandomString } = require("./../utils/generateRandomString")
 const { generateOtp } = require("./../utils/otp")
 
-exports.login = async(req, res) => {
+exports.login = async (req, res) => {
     try {
         // console.log("dsfsdfssdfsf")
         const user = await User.findOne({ email: req.body.email })
@@ -17,12 +17,12 @@ exports.login = async(req, res) => {
             else {
                 const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
                 res.cookie('token', token, { expiresIn: '1d' });
-                const { _id, firstName, lastName, middleName, email, role } = user
+                const { _id, firstName, lastName, middleName, email, role, department } = user
 
-                return res.json({
+                return res.json({ 
                     status: true,
                     token,
-                    user: { _id, firstName, lastName, middleName, email, role }
+                    user: { _id, firstName, lastName, middleName, email, role, department }
                 })
             }
         } else {
@@ -32,7 +32,7 @@ exports.login = async(req, res) => {
                 messsage: "User doesn't exist."
             })
         }
-    } catch(err) {
+    } catch (err) {
         console.log(err)
         return res.json({
             status: false,
@@ -41,7 +41,7 @@ exports.login = async(req, res) => {
     }
 }
 
-exports.register = async(req, res) => {
+exports.register = async (req, res) => {
     try {
         const user = await User.findOne({ email: req.body.email })
         if (user) {
@@ -59,8 +59,8 @@ exports.register = async(req, res) => {
                 middleName: req.body.middleName,
                 lastName: req.body.lastName,
                 email: req.body.email,
-                password : req.body.password,
-                role: 0 
+                password: req.body.password,
+                role: 0
             })
 
             console.log("Coordinator has been created.");
@@ -72,7 +72,7 @@ exports.register = async(req, res) => {
             console.log(newUser)
             console.log(randomPassword)
         }
-    } catch(err) {
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             error: err,
@@ -81,7 +81,7 @@ exports.register = async(req, res) => {
     }
 }
 
-exports.resetPassword = async(req, res) => {
+exports.resetPassword = async (req, res) => {
     try {
         const user = await User.findOne({ email: req.body.email })
         if (user && !user.authenticate(req.body.prevPass)) {
@@ -90,29 +90,29 @@ exports.resetPassword = async(req, res) => {
                 error: "Password doesn't Match"
             })
         } else {
-            try { 
+            try {
                 const success = await User.findByIdAndUpdate(user._id, {
                     $set: { hashed_password: user.encryptPassword(req.body.confirmPass) }
                 }, { new: true })
 
-                    console.log(user.email)
-                    console.log(req.body.confirmPass)
+                console.log(user.email)
+                console.log(req.body.confirmPass)
 
-                    res.json({
-                        status: true,
-                        data: success
-                    })
-                    console.log(success)
-            } catch(err) {
+                res.json({
+                    status: true,
+                    data: success
+                })
+                console.log(success)
+            } catch (err) {
                 console.log(err)
             }
         }
-    } catch(err) {
+    } catch (err) {
         console.log(err)
     }
 }
 
-exports.otpForForgotPassword = async(req, res) => {
+exports.otpForForgotPassword = async (req, res) => {
     try {
         const otp = generateOtp(4)
         const user = await User.findOneAndUpdate({ email: req.body.email }, { $set: { otp: otp } }, { new: true })
@@ -128,7 +128,7 @@ exports.otpForForgotPassword = async(req, res) => {
                 message: "Done!"
             })
         }
-    } catch(err) {
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             error: err,
@@ -137,7 +137,7 @@ exports.otpForForgotPassword = async(req, res) => {
     }
 }
 
-exports.forgotPassword = async(req, res) => {
+exports.forgotPassword = async (req, res) => {
     try {
         const user = await User.findOne({ email: req.body.email })
         if (user.otp === req.body.otp * 1) {
@@ -161,7 +161,7 @@ exports.forgotPassword = async(req, res) => {
             success: false,
             message: "Invalid OTP"
         })
-    } catch(err) {
+    } catch (err) {
         console.log(err)
         res.status(500).json({
             error: err,

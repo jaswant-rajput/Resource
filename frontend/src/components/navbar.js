@@ -14,6 +14,7 @@ import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { InputLabel, FormControl } from '@mui/material';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { getAllResources, createResource, deleteResource } from '../actions/resourceActions';
@@ -52,7 +53,10 @@ const Navbar = ({ onResourceSelect }) => {
   const [description, setDescription] = useState('');
   const [starttime, setStartTime] = useState('');
   const [endtime, setEndTime] = useState('');
-  const [department,setdepartment] = useState('')
+  const [department, setDepartment] = useState('')
+
+
+  const departments = ['Computer Science', 'Electrical Engineering', 'Mechanical Engineering', 'Civil Engineering', 'Business Administration'];
 
   const [multipleDayOpen, setMultipleDayOpen] = useState(false);
   const [startDate, setStartDate] = useState('');
@@ -145,6 +149,7 @@ const Navbar = ({ onResourceSelect }) => {
     setClassInput('')
     setDescription('')
     setDate('')
+    setDepartment('')
   };
 
   const handleMultipleDayOpen = () => {
@@ -160,6 +165,7 @@ const Navbar = ({ onResourceSelect }) => {
     setStartDate('')
     setEndDate('')
     setDescription('')
+    setDepartment('')
   };
 
   const handleDefaultAllocationOpen = () => {
@@ -410,11 +416,12 @@ const Navbar = ({ onResourceSelect }) => {
       allocation: {
         class: classInput,
         description: description,
-        time: tempformattedTime
+        time: tempformattedTime,
+        department : department
       }
     };
 
-    if (resourceId && formattedDate && classInput && description && tempformattedTime) {
+    if (resourceId && formattedDate && classInput && description && tempformattedTime && department) {
       addAllocation(JSON.stringify(allocationData))
         .then(response => {
           triggerRefresh();
@@ -632,13 +639,14 @@ const Navbar = ({ onResourceSelect }) => {
       allocation: {
         class: classInput,
         description: description,
-        time: tempformattedTime
+        time: tempformattedTime,
+        department : department
       }
     };
 
     console.log('Formatted Allocation Data:', allocationData);
 
-    if (resourceId && datesArray.length > 0 && classInput && description && tempformattedTime) {
+    if (resourceId && datesArray.length > 0 && classInput && description && tempformattedTime && department) {
       addAllocation(JSON.stringify(allocationData))
         .then(response => {
           triggerRefresh();
@@ -721,6 +729,7 @@ const Navbar = ({ onResourceSelect }) => {
         setResources((prevResources) => prevResources.filter(resource => resource._id !== resourceIdToDelete));
         handleMenuClose(resourceIdToDelete);
         setConfirm(false);
+        triggerRefresh();
         console.log('Resource deleted successfully');
         triggerAlert('Successfully Deleted Resource', 'success');
       } catch (error) {
@@ -730,6 +739,9 @@ const Navbar = ({ onResourceSelect }) => {
     }
   };
 
+  
+  
+  
   const renderMenu = (resourceId) => (
     <Menu
       key={resourceId}
@@ -964,6 +976,21 @@ const Navbar = ({ onResourceSelect }) => {
           </div>
 
           <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Department</InputLabel>
+              <Select
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                label="Department"
+              >
+                {departments.map((dept) => (
+                  <MenuItem key={dept} value={dept}>{dept}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
             <TextField
               label="Class"
               value={classInput}
@@ -1059,6 +1086,21 @@ const Navbar = ({ onResourceSelect }) => {
               label="WeekDay check"
             />
           </FormGroup>
+
+          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Department</InputLabel>
+              <Select
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                label="Department"
+              >
+                {departments.map((dept) => (
+                  <MenuItem key={dept} value={dept}>{dept}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
 
           <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
             <TextField
