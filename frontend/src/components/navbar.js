@@ -427,6 +427,7 @@ const Navbar = ({ onResourceSelect }) => {
           triggerRefresh();
           console.log('Response from add allocation', response);
           triggerAlert('Successfully Created Allocation', 'success');
+          handleSingleDayClose();
         })
         .catch(err => {
           console.error('Failed to add allocation:', err);
@@ -436,7 +437,6 @@ const Navbar = ({ onResourceSelect }) => {
       triggerAlert('Fill in All the fields', 'error');
     }
 
-    handleSingleDayClose();
   };
 
 
