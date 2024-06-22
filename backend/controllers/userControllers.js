@@ -61,8 +61,7 @@ exports.register = async (req, res) => {
                 email: req.body.email,
                 department: req.body.department,
                 password: req.body.password,
-                role: 0,
-                department : req.body.department
+                role: 0
             })
 
             console.log("Coordinator has been created.");
