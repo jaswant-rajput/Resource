@@ -59,6 +59,7 @@ exports.register = async (req, res) => {
                 middleName: req.body.middleName,
                 lastName: req.body.lastName,
                 email: req.body.email,
+                department: req.body.department,
                 password: req.body.password,
                 role: 0,
                 department : req.body.department
@@ -82,28 +83,28 @@ exports.register = async (req, res) => {
     }
 }
 
-exports.resetPassword = async (req, res) => {
+exports.updatePassword = async (req, res) => {
     try {
         const user = await User.findOne({ email: req.body.email })
         if (user && !user.authenticate(req.body.prevPass)) {
             return res.status(400).json({
-                status: false,
+                success: false,
                 error: "Password doesn't Match"
             })
         } else {
             try {
-                const success = await User.findByIdAndUpdate(user._id, {
-                    $set: { hashed_password: user.encryptPassword(req.body.confirmPass) }
-                }, { new: true })
+                const response = await User.findByIdAndUpdate(user._id,
+                    { $set: { hashed_password: user.encryptPassword(req.body.confirmPass) }},
+                    { new: true })
 
                 console.log(user.email)
                 console.log(req.body.confirmPass)
 
                 res.json({
-                    status: true,
-                    data: success
+                    success: true,
+                    data: response
                 })
-                console.log(success)
+                console.log(response)
             } catch (err) {
                 console.log(err)
             }
@@ -113,10 +114,10 @@ exports.resetPassword = async (req, res) => {
     }
 }
 
-exports.otpForForgotPassword = async (req, res) => {
+exports.generateOtpForForgotPassword = async (req, res) => {
     try {
         const otp = generateOtp(4)
-        const user = await User.findOneAndUpdate({ email: req.body.email }, { $set: { otp: otp } }, { new: true })
+        const user = await User.findOneAndUpdate({ email: req.body.email }, { $set: { otp: otp }}, { new: true })
         if (!user) {
             return res.json({
                 success: false,
@@ -138,11 +139,14 @@ exports.otpForForgotPassword = async (req, res) => {
     }
 }
 
-exports.forgotPassword = async (req, res) => {
+exports.resetPasswordByOtp = async (req, res) => {
     try {
         const user = await User.findOne({ email: req.body.email })
         if (user.otp === req.body.otp * 1) {
-            const updatedUser = await User.findOneAndUpdate({ email: req.body.email }, { $set: { otp: null, hashed_password: user.encryptPassword(req.body.password) } }, { new: true })
+            const updatedUser = await User.findOneAndUpdate(
+                { email: req.body.email },
+                { $set: { otp: null, hashed_password: user.encryptPassword(req.body.password) }},
+                { new: true })
             if (!updatedUser) {
                 return res.json({
                     success: false,
@@ -168,5 +172,59 @@ exports.forgotPassword = async (req, res) => {
             error: err,
             success: false
         })
+    }
+}
+
+exports.getAllCoordinators = async (req, res) => {
+    try{
+        const arr = await User.find({ role: 0 })
+        // console.log(response)
+        res.send({
+            success: true,
+            response: arr
+        })
+    } catch(err){
+        res.send({
+            success: false,
+            error: err,
+        })
+    }
+}
+
+exports.updateCoordinator = async (req, res) => {
+    //console.log(req.body);
+    try {
+        const response = await User.findByIdAndUpdate(req.params._id, req.body, { new: true })
+        res.send({
+            success: true,
+            response: response,
+        })
+    } catch(err) {
+        res.send({
+            success: false,
+            error: err,
+        })
+      }
+}
+
+exports.changeCoordinatorPermission = async (req, res) => {
+    try {
+        const coordinator = await User.findById(req.params._id)
+        if (!coordinator) {
+            return res.status(404).json({ error: "Coordinator not found" });
+        }
+        // Toggle the isActive field
+        coordinator.isActive = !coordinator.isActive;
+
+        // Save the updated coordinator
+        coordinator.save();
+
+        res.json({
+            message: "Coordinator status updated successfully",
+            isActive: !coordinator.isActive,
+        })
+    } catch(error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" })
     }
 }

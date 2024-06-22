@@ -33,6 +33,10 @@ const userSchema = new mongoose.Schema({
         default: 0
         //0 for coordinator and 1 for admin
     },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
     otp: {
         type : Number,
     },
