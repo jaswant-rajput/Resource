@@ -18,7 +18,7 @@ import { InputLabel, FormControl } from '@mui/material';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { getAllResources, createResource, deleteResource } from '../actions/resourceActions';
-import { addAllocation, setDefaultAllocation, getAllocationByMonth, removeAllocation } from '../actions/resourceAllocationActions';
+import { addAllocation, setDefaultAllocation, getAllocationByMonth, removeAllocation, getDefaultAllocation } from '../actions/resourceAllocationActions';
 import { useEffect, useState } from 'react';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -34,6 +34,7 @@ const Navbar = ({ onResourceSelect }) => {
   const [resourceOpen, setResourceOpen] = useState(false);
   const [allocationOpen, setAllocationOpen] = useState(false);
   const [defaultAllocationOpen, setDefaultAllocationOpen] = useState(false);
+  const [defaultAllocations, setDefaultAllocations] = useState([]);
 
   const [resources, setResources] = useState([]);
   const [resourceType, setResourceType] = useState('');
@@ -81,20 +82,49 @@ const Navbar = ({ onResourceSelect }) => {
 
 
 
+  // const fetchData = async () => {
+  //   try {
+  //     const response = await getAllResources();
+  //     console.log('data from getAllResources', response);
+
+  //     if (response && response.data) {
+  //       const transformedData = response.data.map(resource => ({
+  //         label: `${resource.resourceType} - ${resource.resourceNo}`,
+  //         resourceNo: resource.resourceNo,
+  //         resourceType: resource.resourceType,
+  //         _id: resource._id,
+  //       }
+  //       ));
+  //       setResources(transformedData); // Make sure this updates the state correctly
+  //     } else {
+  //       console.error('Invalid data format:', response);
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+
   const fetchData = async () => {
     try {
+      let transformedData = null
       const response = await getAllResources();
       console.log('data from getAllResources', response);
-
+  
       if (response && response.data) {
-        const transformedData = response.data.map(resource => ({
+        transformedData  = response.data.map(resource => ({
           label: `${resource.resourceType} - ${resource.resourceNo}`,
           resourceNo: resource.resourceNo,
           resourceType: resource.resourceType,
           _id: resource._id,
-        }
-        ));
+        }));
+  
         setResources(transformedData); // Make sure this updates the state correctly
+        if (transformedData.length > 0) {
+          console.log('skdfbsjbsfvsvs hello',transformedData[0]._id)
+          setResourceType(transformedData[0].resourceType);
+          setResourceNo(transformedData[0].resourceNo);
+          setResourceId(transformedData[0]._id)
+        }
       } else {
         console.error('Invalid data format:', response);
       }
@@ -102,6 +132,7 @@ const Navbar = ({ onResourceSelect }) => {
       console.log(error);
     }
   };
+  
 
 
   useEffect(() => {
@@ -112,6 +143,7 @@ const Navbar = ({ onResourceSelect }) => {
     console.log('Updated Resource Type:', resourceType);
     console.log('Updated Resource No:', resourceNo);
   }, [resourceType, resourceNo]);
+
 
   const handleOpen = () => {
     setOpen(true);
@@ -356,6 +388,9 @@ const Navbar = ({ onResourceSelect }) => {
     try {
       const existingAllocations = await getAllocationByMonth(resourceId, year, month);
       console.log('Existing allocations:', existingAllocations);
+      console.log('resource idgfgfg',resourceId)
+      console.log('resource nogfgfg',resourceNo)
+      console.log('resource typegfgfg',resourceType)
 
       if (existingAllocations && Array.isArray(existingAllocations.data)) {
         const allocationExists = existingAllocations.data.some(allocation => {
@@ -664,48 +699,134 @@ const Navbar = ({ onResourceSelect }) => {
   };
 
 
+  // const handleDefaultAllocationSave = () => {
+  //   const start = dayjs(starttime);
+  //   const end = dayjs(endtime);
 
+  //   if (!start.isValid() || !end.isValid()) {
+  //     console.error('Invalid start time or end time');
+  //     triggerAlert('Invalid start time or end time', 'error');
+  //     return;
+  //   }
+
+  //   const formattedStartTime = start.format('h:mm A');
+  //   const formattedEndTime = end.format('h:mm A');
+  //   const tempformattedTime = `${formattedStartTime} - ${formattedEndTime}`;
+
+  //   console.log('time', tempformattedTime);
+
+  //   const allocationData = {
+  //     class: classInput,
+  //     time: tempformattedTime
+  //   };
+
+  //   if (tempformattedTime && classInput) {
+  //     setDefaultAllocation(resourceId, JSON.stringify(allocationData))
+  //       .then(response => {
+  //         console.log('Response from set default allocation:', response);
+  //         triggerAlert('Successfully set default allocation', 'success');
+  //         triggerRefresh();
+  //         handleDefaultAllocationClose();
+  //       })
+  //       .catch(err => {
+  //         console.error('Failed to set default allocation:', err);
+  //         triggerAlert('Failed to set default allocation', 'error');
+  //       });
+
+  //   }
+  //   else {
+  //     triggerAlert('Please Fill in All the fields', 'error')
+  //   }
+  // }
 
   const handleDefaultAllocationSave = () => {
     const start = dayjs(starttime);
     const end = dayjs(endtime);
-
+  
     if (!start.isValid() || !end.isValid()) {
       console.error('Invalid start time or end time');
       triggerAlert('Invalid start time or end time', 'error');
       return;
     }
-
+  
     const formattedStartTime = start.format('h:mm A');
     const formattedEndTime = end.format('h:mm A');
     const tempformattedTime = `${formattedStartTime} - ${formattedEndTime}`;
-
+  
     console.log('time', tempformattedTime);
-
-    const allocationData = {
+  
+    const newAllocationData = {
       class: classInput,
       time: tempformattedTime
     };
-
-    if (tempformattedTime && classInput) {
-      setDefaultAllocation(resourceId, JSON.stringify(allocationData))
-        .then(response => {
-          console.log('Response from set default allocation:', response);
-          triggerAlert('Successfully set default allocation', 'success');
-        })
-        .catch(err => {
-          console.error('Failed to set default allocation:', err);
-          triggerAlert('Failed to set default allocation', 'error');
+  
+    // Step 1: Fetch existing allocations
+    handleGetDefault(resourceId)
+      .then(() => {
+        // Step 2: Check for time overlaps
+        const isOverlap = defaultAllocations.some(existingAllocation => {
+          const [existingStart, existingEnd] = existingAllocation.time.split(' - ').map(time => dayjs(time, 'h:mm A'));
+  
+          console.log(`Checking allocation time: ${existingAllocation.time}`);
+          console.log(`New allocation start time: ${formattedStartTime}, end time: ${formattedEndTime}`);
+          console.log(`Existing allocation start time: ${existingStart.format('h:mm A')}, end time: ${existingEnd.format('h:mm A')}`);
+  
+          // Check for time overlap
+          return start.isBefore(existingEnd) && end.isAfter(existingStart);
         });
-
-    }
-    else {
-      triggerAlert('Please Fill in All the fields', 'error')
-    }
-
-    handleDefaultAllocationClose();
-
+  
+        if (isOverlap) {
+          triggerAlert(`Allocation already exists for the selected time: ${tempformattedTime}`, 'error');
+          return;
+        }
+  
+        // Step 3: Merge Allocations
+        const updatedAllocations = [...defaultAllocations, newAllocationData];
+  
+        // Step 4: Update the server
+        if (tempformattedTime && classInput) {
+          setDefaultAllocation(resourceId, JSON.stringify(updatedAllocations))
+            .then(response => {
+              console.log('Response from set default allocation:', response);
+              triggerAlert('Successfully set default allocation', 'success');
+              triggerRefresh();
+              handleDefaultAllocationClose();
+            })
+            .catch(err => {
+              console.error('Failed to set default allocation:', err);
+              triggerAlert('Failed to set default allocation', 'error');
+            });
+  
+        } else {
+          triggerAlert('Please Fill in All the fields', 'error')
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching default allocation:', err);
+        setDefaultAllocations([]); // Ensure the state is cleared if no allocation is found
+      });
   }
+  
+  // Modify the handleGetDefault to ensure it updates the state before using it in handleDefaultAllocationSave
+  const handleGetDefault = async (resourceId) => {
+    try {
+      setDefaultAllocations([]);
+      const response = await getDefaultAllocation(resourceId);
+  
+      if (response.success && response.data && response.data.length > 0) {
+        setDefaultAllocations(response.data);
+        console.log('Default allocations:', response.data);
+      } else {
+        console.log('No default allocation found');
+        setDefaultAllocations([]); // Ensure the state is cleared if no allocation is found
+      }
+    } catch (err) {
+      console.error('Error fetching default allocation:', err);
+      setDefaultAllocations([]); // Ensure the state is cleared if no allocation is found
+    }
+  };
+  
+  
 
   const handleMenuClick = (event, resourceId) => {
     setAnchorEls((prevAnchorEls) => ({

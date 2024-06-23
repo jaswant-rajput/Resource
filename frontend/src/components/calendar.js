@@ -15,8 +15,8 @@ const Calendar = ({ selectedResourceId }) => {
     const [startdate, setStartDate] = useState('');
     const [resourceType, setResourceType] = useState('');
     const [resourceNo, setResourceNo] = useState('');
-    const [defaultclass, setDefaultClass] = useState('');
-    const [time, setTime] = useState('');
+    const [defaultAllocations, setDefaultAllocations] = useState([]);
+
 
     const { refresh, resetRefresh } = useRefresh();
     const { triggerRefresh } = useRefresh();
@@ -48,25 +48,25 @@ const Calendar = ({ selectedResourceId }) => {
             handleGetAllocationByMonth(selectedResourceId);
             handleResourceNames(selectedResourceId);
             handleGetDefault(selectedResourceId)
-            setDefaultClass('')
-            setTime('')
+            setDefaultAllocation('')
         }
     }, [selectedResourceId]);
 
     const handleGetDefault = (resourceId) => {
+        setDefaultAllocations([])
         getDefaultAllocation(resourceId)
             .then(response => {
                 if (response.success && response.data && response.data.length > 0) {
-                    const defaultAllocation = response.data[0];
-                    setDefaultClass(defaultAllocation.class);
-                    setTime(defaultAllocation.time);
-                    console.log('class and time is ', defaultAllocation)
+                    setDefaultAllocations(response.data);
+                    console.log('Default allocations:', response.data);
                 } else {
                     console.log('No default allocation found');
+                    setDefaultAllocations([]); // Ensure the state is cleared if no allocation is found
                 }
             })
             .catch(err => {
                 console.error('Error fetching default allocation:', err);
+                setDefaultAllocations([]); // Ensure the state is cleared if no allocation is found
             });
     };
 
@@ -137,26 +137,26 @@ const Calendar = ({ selectedResourceId }) => {
         const formattedStartDate = new Date(startdate);
         formattedStartDate.setDate(formattedStartDate.getDate() + 1);
         const nextDay = formattedStartDate.toISOString().split('T')[0];
-    
+
         allocationData.forEach((data) => {
             const allocationStartDate = new Date(data.startdate).toISOString().split('T')[0];
             if (allocationStartDate === nextDay) {
                 outerId = data._id;
             }
         });
-    
+
         if (!outerId) {
             console.error('No matching allocation data found for the selected date');
             triggerAlert('No matching allocation data found for the selected date', 'error');
             return;
         }
-    
+
         console.log('Found outerId:', outerId);
-    
+
         // Perform the deletion logic here (e.g., update the state or make an API call)
         const updatedAllocations = selectedDateAllocations.filter(item => item._id !== allocation._id);
         setSelectedDateAllocations(updatedAllocations);
-    
+
         setAllocationData(allocationData.map(data => {
             if (data._id === outerId) {
                 return {
@@ -166,22 +166,22 @@ const Calendar = ({ selectedResourceId }) => {
             }
             return data;
         }));
-    
+
         // Format dates to 'YYYY-MM-DD 00:00:00.000Z'
         const formatToDate = (dateString) => {
             const date = new Date(dateString);
             date.setUTCHours(0, 0, 0, 0);
             return date.toISOString().replace('T', ' ').replace('.000Z', ':00.000Z');
         };
-    
+
         const deleteData = {
             resourceObjectId: selectedResourceId,
             dates: [formatToDate(nextDay)],
             time: allocation.time
         };
-    
+
         console.log('deletion data', deleteData);
-    
+
         removeAllocation(JSON.stringify(deleteData))
             .then(response => {
                 console.log('Response for delete:', response);
@@ -192,12 +192,12 @@ const Calendar = ({ selectedResourceId }) => {
                 console.log('Error from delete:', err);
                 triggerAlert('Failed to delete allocation', 'error');
             });
-    
+
         setSelectedAllocation(null);
         setOpen(updatedAllocations.length > 0);
     };
-    
-    
+
+
 
     const handleMonthChange = (event) => {
         const selectedMonth = event.target.value;
@@ -245,10 +245,26 @@ const Calendar = ({ selectedResourceId }) => {
             {/* <p>Default Allocation is {defaultclass} {time}</p> */}
             {/* <p>Selected Resource Id is : {selectedResourceId}</p> */}
             <div className='border border-primary p-2'>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h6 className='text-start' style={{ marginBottom: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxHeight: '9vh' }}>
+                    {/* <h6 className='text-start' style={{ marginBottom: 0 }}>
                         Default Allocation is {defaultclass} {time}
-                    </h6>
+                    </h6> */}
+                    <div style={{maxHeight:'10vh',overflowY: 'scroll',scrollbarWidth:'none'}}>
+                        {defaultAllocations.length > 0 ? (
+                            defaultAllocations.map((allocation, index) => (
+                                <div key={index} style={{
+                                    maxHeight: '100%', // Use full height of the parent
+                                }}>
+                                    <p>
+                                        <b>Class:</b> {allocation.class} &nbsp;&nbsp;
+                                        <b>Time:</b> {allocation.time}
+                                    </p>
+                                </div>
+                            ))
+                        ) : (
+                            <p>No default allocations found</p>
+                        )}
+                    </div>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <h6 className='text-center' style={{ marginBottom: 0 }}>
                             Selected Resource is {resourceType} : {resourceNo}
@@ -336,7 +352,7 @@ const Calendar = ({ selectedResourceId }) => {
                                 <strong>Department:</strong> {allocation.department}
                             </DialogContentText>
                         </div>
-                        
+
                     ))}
                 </DialogContent>
                 <DialogActions>
