@@ -1157,6 +1157,7 @@ const Navbar = ({ onResourceSelect }) => {
         <DialogTitle>Set Default Event</DialogTitle>
         <DialogContent>
           {/* Add your default allocation components here */}
+          <p>Default Allocation is being added to {resourceType} : {resourceNo}</p>
 
           <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
             <TextField
