@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import './calendar.css';
-import { getAllocationByMonth, removeAllocation, getDefaultAllocation, setDefaultAllocation } from '../actions/resourceAllocationActions';
+import { getAllocationByMonth, removeAllocation, getDefaultAllocation } from '../actions/resourceAllocationActions';
 import { getAllResources } from '../actions/resourceActions';
 import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, IconButton, Select, MenuItem } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import Alert from '@mui/material/Alert';
 import { useRefresh } from './RefreshContext';
+import { useAuthStore } from "../store/store";
 
 const Calendar = ({ selectedResourceId }) => {
+
+    const user = useAuthStore.getState().user;
+
     const [allocationData, setAllocationData] = useState([]);
     const [open, setOpen] = useState(false);
     const [selectedDateAllocations, setSelectedDateAllocations] = useState([]);
@@ -48,7 +52,7 @@ const Calendar = ({ selectedResourceId }) => {
             handleGetAllocationByMonth(selectedResourceId);
             handleResourceNames(selectedResourceId);
             handleGetDefault(selectedResourceId)
-            setDefaultAllocation('')
+            setDefaultAllocations('')
         }
     }, [selectedResourceId]);
 
@@ -148,6 +152,10 @@ const Calendar = ({ selectedResourceId }) => {
         if (!outerId) {
             console.error('No matching allocation data found for the selected date');
             triggerAlert('No matching allocation data found for the selected date', 'error');
+            return;
+        } else if (outerId !== user._id) {
+            console.error('This allocation was not created by you');
+            triggerAlert('This allocation was not created by you', 'error');
             return;
         }
 
@@ -372,9 +380,3 @@ const Calendar = ({ selectedResourceId }) => {
 };
 
 export default Calendar;
-
-
-
-
-
-

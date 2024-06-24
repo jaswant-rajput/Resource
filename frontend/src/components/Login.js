@@ -11,8 +11,8 @@ const Login = () => {
     const setLoginFailed = useState(false);
     const setStateUser = useAuthStore(state => state.setUser)
     const [userData, setUserData] = useState({
-        email: "@gmail.com",
-        password: "password",
+        email: "",
+        password: "",
         error: "",
         errorMessage: ""
     })
@@ -42,6 +42,7 @@ const Login = () => {
         else {
             login({ email: userData.email, password: userData.password })
                 .then((data) => {
+                    //console.log(data)
                     if (data === undefined) {
                         return setServerMessage("Server Down, Contact Dev Cell")
                     }
@@ -49,13 +50,13 @@ const Login = () => {
                         return setServerMessage(data.message)
                     }
                     if (data.status === true) {
-                        setStateUser(data.user)
                         navigate("/dashboard")
                     }
+                    setStateUser(data.user)
                 })
                 .catch((error) => {
                     setLoginFailed(true)
-                    setUserData({ ...userData, error: 'loginForm', errorMessage: ' Invalid Email Id or Password  ' })
+                    setUserData({ ...userData, error: 'loginForm', errorMessage: 'Invalid Email Id or Password' })
                     console.error('Login error:', error.message);
                 });
         }

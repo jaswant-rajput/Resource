@@ -7,7 +7,8 @@ const DashboardRibbon = () => {
 
     const setStateUser = useAuthStore((state) => state.setUser);
     const user = useAuthStore.getState().user;
-    
+    //console.log(user)
+
     const handleLogout = () => {
         setStateUser(null);
         localStorage.removeItem("token");
@@ -34,22 +35,25 @@ const DashboardRibbon = () => {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li className="nav-item">
-                            <Link
-                                className="nav-link text-light "
-                                to={"/coordinators/list"}
-                            >
-                                Coordinators
-                            </Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link
-                                className="nav-link text-light "
-                                to={"/coordinators/new"}
-                            >
-                                Add coordinator
-                            </Link>
-                        </li>
+                        { (user.role === 1) ? <>
+                            <li className="nav-item">
+                                <Link
+                                    className="nav-link text-light "
+                                    to={"/coordinators/list"}
+                                >
+                                    Coordinators
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link
+                                    className="nav-link text-light "
+                                    to={"/coordinators/new"}
+                                >
+                                    Add coordinator
+                                </Link>
+                            </li> 
+                            </>
+                        : null }
                         <li className="nav-item">
                             <Link
                                 className="nav-link text-light"

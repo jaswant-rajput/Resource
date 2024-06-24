@@ -12,7 +12,7 @@ const AddCoordinator = () => {
         lastName : "",
         email: "",
         department: "",
-        password : "password",
+        password : "",
         error : "",
         errorMessage : ""
     })
@@ -70,7 +70,7 @@ const AddCoordinator = () => {
                             lastName: '',
                             email: '',
                             department: '',
-                            password : 'password',
+                            password : '',
                             error: '',
                             errorMessage: ''
                         });
