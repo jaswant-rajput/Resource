@@ -49,13 +49,13 @@ const PasswordReset = () => {
     const handleUpdatePassword = () => {
         updatePassword({email: user.email, prevPass, confirmPass}).then(res => {
             console.log(res.status)
-            if (res.status) {
+            if (res.success) {
                 handleLogout()
             } 
             if (res === undefined) {
                 setPassData({...passData, error: 'ServerMessage', errorMessage: `Server down, Contact Dev Cell`})
             }
-            if (!res.status) {
+            if (!res.success) {
                 setPassData({...passData, error: 'ServerMessage', errorMessage: `Old ${res.error}`})
             }
         }).catch(err => {

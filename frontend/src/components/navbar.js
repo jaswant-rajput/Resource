@@ -26,10 +26,12 @@ import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useRefresh } from './RefreshContext';
-
-
+import { useAuthStore } from "../store/store";
 
 const Navbar = ({ onResourceSelect }) => {
+
+  const user = useAuthStore.getState().user;
+
   const [open, setOpen] = useState(false);
   const [resourceOpen, setResourceOpen] = useState(false);
   const [allocationOpen, setAllocationOpen] = useState(false);
@@ -452,7 +454,8 @@ const Navbar = ({ onResourceSelect }) => {
         class: classInput,
         description: description,
         time: tempformattedTime,
-        department : department
+        department : department,
+        createdBy : user._id
       }
     };
 
@@ -675,7 +678,8 @@ const Navbar = ({ onResourceSelect }) => {
         class: classInput,
         description: description,
         time: tempformattedTime,
-        department : department
+        department : department,
+        createdBy : user._id
       }
     };
 
@@ -871,7 +875,9 @@ const Navbar = ({ onResourceSelect }) => {
       open={Boolean(anchorEls[resourceId])}
       onClose={() => handleMenuClose(resourceId)}
     >
+      { (user._id === 1) ?
       <MenuItem onClick={() => handleConfirmationOpen(resourceId)}>Delete Resource</MenuItem>
+      : null }
     </Menu>
   );
 
@@ -953,12 +959,6 @@ const Navbar = ({ onResourceSelect }) => {
   };
 
 
-
-
-
-
-
-
   return (
     <div style={{ width: '16vw', marginRight: '1.7vw' }}>
       <div>
@@ -1017,10 +1017,12 @@ const Navbar = ({ onResourceSelect }) => {
         <DialogTitle>Select an Option</DialogTitle>
         <DialogContent>
           <ul>
+            { (user.role === 1) ? <>
             <li>
               <Button onClick={handleResourceOpen}>Resource</Button>
             </li>
-            <br />
+            <br /> </>
+            : null }
             <li>
               <Button onClick={handleAllocationOpen}>Event</Button>
             </li>
@@ -1065,14 +1067,16 @@ const Navbar = ({ onResourceSelect }) => {
             <li>
               <Button onClick={handleSingleDayOpen}>Single Day Event</Button>
             </li>
-            <br></br>
+            <br />
             <li>
               <Button onClick={handleMultipleDayOpen}>Multiple Day Event</Button>
             </li>
-            <br></br>
+            { (user.role === 1) ? <> 
+            <br />
             <li>
               <Button onClick={handleDefaultAllocationOpen}>Set Default Event</Button>
-            </li>
+            </li> </>
+            : null }
           </ul>
         </DialogContent>
         <DialogActions>

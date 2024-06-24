@@ -15,12 +15,10 @@ const UpdateCoordinator = () => {
         middleName: "",
         lastName: "",
         email: "",
-        password: "password",
-        error: "",
-        errorMessage: "",
+        department: "",
         isActive: true,
-        role: 0,
-        department: ""
+        error: "",
+        errorMessage: ""
     })
 
     const {
