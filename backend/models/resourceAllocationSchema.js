@@ -30,6 +30,14 @@ const resourceAllocationSchema = new mongoose.Schema({
 		},
 		time: {
 			type: String
+		},
+		department : {
+			type: String,
+			required : true
+		},
+		createdBy : {
+			type: ObjectId,
+			ref: "User"
 		}
     }]
 });

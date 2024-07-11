@@ -21,17 +21,22 @@ exports.setDefaultAllocation = async(req,res) =>{
 }
 
 // Get default allocation
-exports.getDefaultAllocation = async(req, res) => {
+exports.getDefaultAllocation = async (req, res) => {
     try {
-        const allocation = await ResourceAllocation.findById(req.params._id)
+        const { resourceObjectId } = req.params; // Assuming resourceObjectId is passed as a URL parameter
+
+        const allocation = await ResourceAllocation.findOne({ resourceObjectId });
+        
         if (!allocation) {
             return res.status(404).json({ success: false, message: "Allocation not found" });
         }
+
         res.json({ success: true, data: allocation.defaultAllocation });
-    } catch(err) {
-        res.status(500).json({ success: false, error: err});
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: err.message });
     }
-}
+};
 
 // Add allocation
 exports.addAllocation = async(req,res) =>{
@@ -57,9 +62,10 @@ exports.addAllocation = async(req,res) =>{
 // Remove allocation
 exports.removeAllocation = async(req,res) =>{
     try {
-        // req.body = { _id : <allocaiton id>, allocation: <object of allocation to be removed> }
-        const response = await ResourceAllocation.findByIdAndUpdate(req.body._id,
-            { $pull : { allocationRecords: req.body.allocation } },
+        // req.body = { resourceObjectId : <resourceObjectId>, dates: <array of all dates>, time: <time field of allocation to be removed> }
+        const response = await ResourceAllocation.updateMany(
+            { resourceObjectId: req.body.resourceObjectId, startdate: { $in : req.body.dates }},
+            { $pull : { allocationRecords: { time: req.body.time } } },
             { new: true })
         res.json({
             success: true,
@@ -71,35 +77,8 @@ exports.removeAllocation = async(req,res) =>{
             error: err
         })
     }
-    /*try {
-        // Pass the allocationRecords object to be removed
-        const response = await ResourceAllocation.findById(req.params._id)
-
-        let records = response.allocationRecords
-        records.splice(records.findIndex(obj => (obj.class==req.body.class)&&(obj.time==req.body.time)),1)
-
-        try {
-            // Pass the allocationRecords object to be added
-            const response2 = await ResourceAllocation.findByIdAndUpdate(req.params._id,
-                { allocationRecords: records },
-                { new: true })
-            res.json({
-                message: "Success, allocation removed",
-                data: response2
-            })
-        } catch(err) {
-            res.json({
-                message: "Fail, allocation not removed",
-                error: err
-            })
-        }
-    } catch(err) {
-        res.json({
-            message: "Fail",
-            error: err
-        })
-    }*/
 }
+
 
 exports.getAllocationByMonth = async(req,res) => {
     try {
@@ -109,7 +88,7 @@ exports.getAllocationByMonth = async(req,res) => {
         const startDate = new Date();
         const endDate = new Date();
         
-        startDate.setFullYear(year, month - 1, 1);
+        startDate.setFullYear(year, month - 1, 0);
         endDate.setFullYear(year, month, 0);
         endDate.setHours(23, 59, 59, 999);
         
@@ -162,29 +141,32 @@ exports.getAllocationId = async (req,res) =>  {
 // to use in resourceControllers
 exports.createAllocationData = async(resource) => {
     const now = new Date();
-	const year = now.getFullYear();
-	const month = now.getMonth();
-	const startDate = new Date(year, month, 2);
-	const endDate = new Date(year, month + 1, 1);
-	const dates = [];
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const startDate = new Date(Date.UTC(year, month, 1)); // Set start date to midnight UTC
+    const endDate = new Date(Date.UTC(year, month + 1, 1)); // Set end date to midnight UTC
+    const dates = [];
 
-	while (startDate <= endDate) {
-		dates.push(new Date(startDate));
-		startDate.setDate(startDate.getDate() + 1);
-	}
+    while (startDate <= endDate) {
+        dates.push(new Date(startDate));
+        startDate.setUTCDate(startDate.getUTCDate() + 1); // Ensure it adds the date in UTC
+    }
 
-	const allocations = dates.map(day => {
+    const allocations = dates.map(day => {
+        // Ensure the date is formatted correctly
+        const formattedDate = day.toISOString().split('T')[0] + "T00:00:00.000Z";
         return {
             resourceObjectId: resource._id,
-            startdate: day,
+            startdate: formattedDate,
             defaultAllocation: [],
             allocationRecords: []
         }
-    })
+    });
 
-	await ResourceAllocation.create(allocations)
-	console.log("Allocation data created")
-}
+    await ResourceAllocation.create(allocations);
+    console.log("Allocation data created");
+};
+
 
 exports.removeAllocationData = async(resourceId) => {
 	await ResourceAllocation.deleteMany({resourceObjectId: resourceId})
