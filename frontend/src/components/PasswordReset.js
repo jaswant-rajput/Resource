@@ -5,7 +5,6 @@ import { useState } from "react"
 import { useAuthStore } from "../store/store";
 import { updatePassword } from "../actions/authActions";
 import DashboardRibbon from "../adminflow/DashboardRibbon";
-
 const PasswordReset = () => {
 
     const user = useLocation().state

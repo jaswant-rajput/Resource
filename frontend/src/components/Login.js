@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PreventAuthFlow } from '../manageRoutes/protectRoutes';
+import { PreventAuthFlow } from '../manageroutes/protectRoutes';
 import { login } from  "../actions/authActions";
 import { useAuthStore } from '../store/store';
 import { Visibility, VisibilityOff } from "@mui/icons-material";

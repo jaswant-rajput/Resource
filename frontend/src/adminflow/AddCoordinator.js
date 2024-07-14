@@ -2,7 +2,7 @@ import React , { useState,useEffect } from "react";
 import { register } from "./../actions/authActions"
 import TextField from "@mui/material/TextField";
 import DashboardRibbon from "./DashboardRibbon";
-import { ProtectRoute } from "../manageRoutes/protectRoutes";
+import { ProtectRoute } from "../manageroutes/protectRoutes";
 
 const AddCoordinator = () => {
     

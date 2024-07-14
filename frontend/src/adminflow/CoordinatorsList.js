@@ -1,8 +1,8 @@
-import { ProtectRoute } from "../manageRoutes/protectRoutes";
-import DashboardRibbon from "./DashboardRibbon";
 import { useEffect, useState } from "react";
 import { getAllCoordinators, changeCoordinatorPermission } from "../actions/authActions";
 import { Link } from "react-router-dom";
+import { ProtectRoute } from "../managerRoutes/protectRoutes";
+import DashboardRibbon from "./DashboardRibbon";
 
 const CoordinatorsList = () => {
 	const [coordinatorsArray, setCoordinatorsArray] = useState([]);
