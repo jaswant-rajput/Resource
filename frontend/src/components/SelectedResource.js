@@ -13,7 +13,7 @@ const App = () => {
 
 	useEffect(() => {
 		fetchData();
-	},[])
+	}, [])
 
 	const fetchData = async () => {
 		try {
@@ -37,7 +37,9 @@ const App = () => {
 					<div className='col-2'>
 						<Navbar onResourceSelect={handleResourceSelect} />
 					</div>
-					<Calendar selectedResourceId={selectedResourceId} />
+					<div>
+						<Calendar selectedResourceId={selectedResourceId} />
+					</div>
 				</div>
 			</div>
 		</div>

@@ -111,18 +111,18 @@ const Navbar = ({ onResourceSelect }) => {
       let transformedData = null
       const response = await getAllResources();
       console.log('data from getAllResources', response);
-  
+
       if (response && response.data) {
-        transformedData  = response.data.map(resource => ({
+        transformedData = response.data.map(resource => ({
           label: `${resource.resourceType} - ${resource.resourceNo}`,
           resourceNo: resource.resourceNo,
           resourceType: resource.resourceType,
           _id: resource._id,
         }));
-  
+
         setResources(transformedData); // Make sure this updates the state correctly
         if (transformedData.length > 0) {
-          console.log('skdfbsjbsfvsvs hello',transformedData[0]._id)
+          console.log('skdfbsjbsfvsvs hello', transformedData[0]._id)
           setResourceType(transformedData[0].resourceType);
           setResourceNo(transformedData[0].resourceNo);
           setResourceId(transformedData[0]._id)
@@ -134,7 +134,7 @@ const Navbar = ({ onResourceSelect }) => {
       console.log(error);
     }
   };
-  
+
 
 
   useEffect(() => {
@@ -390,9 +390,9 @@ const Navbar = ({ onResourceSelect }) => {
     try {
       const existingAllocations = await getAllocationByMonth(resourceId, year, month);
       console.log('Existing allocations:', existingAllocations);
-      console.log('resource idgfgfg',resourceId)
-      console.log('resource nogfgfg',resourceNo)
-      console.log('resource typegfgfg',resourceType)
+      console.log('resource idgfgfg', resourceId)
+      console.log('resource nogfgfg', resourceNo)
+      console.log('resource typegfgfg', resourceType)
 
       if (existingAllocations && Array.isArray(existingAllocations.data)) {
         const allocationExists = existingAllocations.data.some(allocation => {
@@ -454,10 +454,11 @@ const Navbar = ({ onResourceSelect }) => {
         class: classInput,
         description: description,
         time: tempformattedTime,
-        department : department,
-        createdBy : user._id
+        department: department,
+        createdBy: user._id
       }
     };
+    console.log('timepass',allocationData)
 
     if (resourceId && formattedDate && classInput && description && tempformattedTime && department) {
       addAllocation(JSON.stringify(allocationData))
@@ -678,8 +679,8 @@ const Navbar = ({ onResourceSelect }) => {
         class: classInput,
         description: description,
         time: tempformattedTime,
-        department : department,
-        createdBy : user._id
+        department: department,
+        createdBy: user._id
       }
     };
 
@@ -746,47 +747,47 @@ const Navbar = ({ onResourceSelect }) => {
   const handleDefaultAllocationSave = () => {
     const start = dayjs(starttime);
     const end = dayjs(endtime);
-  
+
     if (!start.isValid() || !end.isValid()) {
       console.error('Invalid start time or end time');
       triggerAlert('Invalid start time or end time', 'error');
       return;
     }
-  
+
     const formattedStartTime = start.format('h:mm A');
     const formattedEndTime = end.format('h:mm A');
     const tempformattedTime = `${formattedStartTime} - ${formattedEndTime}`;
-  
+
     console.log('time', tempformattedTime);
-  
+
     const newAllocationData = {
       class: classInput,
       time: tempformattedTime
     };
-  
+
     // Step 1: Fetch existing allocations
     handleGetDefault(resourceId)
       .then(() => {
         // Step 2: Check for time overlaps
         const isOverlap = defaultAllocations.some(existingAllocation => {
           const [existingStart, existingEnd] = existingAllocation.time.split(' - ').map(time => dayjs(time, 'h:mm A'));
-  
+
           console.log(`Checking allocation time: ${existingAllocation.time}`);
           console.log(`New allocation start time: ${formattedStartTime}, end time: ${formattedEndTime}`);
           console.log(`Existing allocation start time: ${existingStart.format('h:mm A')}, end time: ${existingEnd.format('h:mm A')}`);
-  
+
           // Check for time overlap
           return start.isBefore(existingEnd) && end.isAfter(existingStart);
         });
-  
+
         if (isOverlap) {
           triggerAlert(`Allocation already exists for the selected time: ${tempformattedTime}`, 'error');
           return;
         }
-  
+
         // Step 3: Merge Allocations
         const updatedAllocations = [...defaultAllocations, newAllocationData];
-  
+
         // Step 4: Update the server
         if (tempformattedTime && classInput) {
           setDefaultAllocation(resourceId, JSON.stringify(updatedAllocations))
@@ -800,7 +801,7 @@ const Navbar = ({ onResourceSelect }) => {
               console.error('Failed to set default allocation:', err);
               triggerAlert('Failed to set default allocation', 'error');
             });
-  
+
         } else {
           triggerAlert('Please Fill in All the fields', 'error')
         }
@@ -810,13 +811,13 @@ const Navbar = ({ onResourceSelect }) => {
         setDefaultAllocations([]); // Ensure the state is cleared if no allocation is found
       });
   }
-  
+
   // Modify the handleGetDefault to ensure it updates the state before using it in handleDefaultAllocationSave
   const handleGetDefault = async (resourceId) => {
     try {
       setDefaultAllocations([]);
       const response = await getDefaultAllocation(resourceId);
-  
+
       if (response.success && response.data && response.data.length > 0) {
         setDefaultAllocations(response.data);
         console.log('Default allocations:', response.data);
@@ -829,8 +830,8 @@ const Navbar = ({ onResourceSelect }) => {
       setDefaultAllocations([]); // Ensure the state is cleared if no allocation is found
     }
   };
-  
-  
+
+
 
   const handleMenuClick = (event, resourceId) => {
     setAnchorEls((prevAnchorEls) => ({
@@ -864,9 +865,9 @@ const Navbar = ({ onResourceSelect }) => {
     }
   };
 
-  
-  
-  
+
+
+
   const renderMenu = (resourceId) => (
     <Menu
       key={resourceId}
@@ -875,9 +876,9 @@ const Navbar = ({ onResourceSelect }) => {
       open={Boolean(anchorEls[resourceId])}
       onClose={() => handleMenuClose(resourceId)}
     >
-      { (user._id === 1) ?
-      <MenuItem onClick={() => handleConfirmationOpen(resourceId)}>Delete Resource</MenuItem>
-      : null }
+      {(user._id === 1) ?
+        <MenuItem onClick={() => handleConfirmationOpen(resourceId)}>Delete Resource</MenuItem>
+        : null}
     </Menu>
   );
 
@@ -1017,12 +1018,12 @@ const Navbar = ({ onResourceSelect }) => {
         <DialogTitle>Select an Option</DialogTitle>
         <DialogContent>
           <ul>
-            { (user.role === 1) ? <>
-            <li>
-              <Button onClick={handleResourceOpen}>Resource</Button>
-            </li>
-            <br /> </>
-            : null }
+            {(user.role === 1) ? <>
+              <li>
+                <Button onClick={handleResourceOpen}>Resource</Button>
+              </li>
+              <br /> </>
+              : null}
             <li>
               <Button onClick={handleAllocationOpen}>Event</Button>
             </li>
@@ -1071,12 +1072,12 @@ const Navbar = ({ onResourceSelect }) => {
             <li>
               <Button onClick={handleMultipleDayOpen}>Multiple Day Event</Button>
             </li>
-            { (user.role === 1) ? <> 
-            <br />
-            <li>
-              <Button onClick={handleDefaultAllocationOpen}>Set Default Event</Button>
-            </li> </>
-            : null }
+            {(user.role === 1) ? <>
+              <br />
+              <li>
+                <Button onClick={handleDefaultAllocationOpen}>Set Default Event</Button>
+              </li> </>
+              : null}
           </ul>
         </DialogContent>
         <DialogActions>
@@ -1084,11 +1085,11 @@ const Navbar = ({ onResourceSelect }) => {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={singleDayOpen} onClose={handleSingleDayClose}>
+      <Dialog open={singleDayOpen} onClose={handleSingleDayClose} style={{ minWidth: '75vw' }}>
         <DialogTitle>Single Day Event</DialogTitle>
         <DialogContent>
           <p>Allocation is being added to {resourceType} : {resourceNo}</p>
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "25vw" }}>
             <TextField
               label="Date"
               type="date"
@@ -1100,7 +1101,7 @@ const Navbar = ({ onResourceSelect }) => {
             />
           </div>
 
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
             <FormControl fullWidth margin="normal">
               <InputLabel>Department</InputLabel>
               <Select
@@ -1115,7 +1116,7 @@ const Navbar = ({ onResourceSelect }) => {
             </FormControl>
           </div>
 
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
             <TextField
               label="Class"
               value={classInput}
@@ -1124,7 +1125,8 @@ const Navbar = ({ onResourceSelect }) => {
               margin="normal"
             />
           </div>
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
             <TextField
               label="Description"
               value={description}
@@ -1134,7 +1136,7 @@ const Navbar = ({ onResourceSelect }) => {
             />
           </div>
 
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={['TimePicker']}>
                 <TimePicker
@@ -1146,7 +1148,8 @@ const Navbar = ({ onResourceSelect }) => {
               </DemoContainer>
             </LocalizationProvider>
           </div>
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={['TimePicker']}>
                 <TimePicker
@@ -1171,11 +1174,11 @@ const Navbar = ({ onResourceSelect }) => {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={multipleDayOpen} onClose={handleMultipleDayClose}>
+      <Dialog open={multipleDayOpen} onClose={handleMultipleDayClose} style={{ minWidth: '75vw' }}>
         <DialogTitle>Multiple Day Event</DialogTitle>
         <DialogContent>
           <p>Allocation is being added to {resourceType} : {resourceNo}</p>
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "25vw" }}>
             <TextField
               label="Start Date"
               type="date"
@@ -1187,7 +1190,7 @@ const Navbar = ({ onResourceSelect }) => {
             />
           </div>
 
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
             <TextField
               label="End Date"
               type="date"
@@ -1212,7 +1215,7 @@ const Navbar = ({ onResourceSelect }) => {
             />
           </FormGroup>
 
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
             <FormControl fullWidth margin="normal">
               <InputLabel>Department</InputLabel>
               <Select
@@ -1227,7 +1230,7 @@ const Navbar = ({ onResourceSelect }) => {
             </FormControl>
           </div>
 
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
             <TextField
               label="Class"
               value={classInput}
@@ -1236,7 +1239,7 @@ const Navbar = ({ onResourceSelect }) => {
               margin="normal"
             />
           </div>
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
             <TextField
               label="Description"
               value={description}
@@ -1246,7 +1249,7 @@ const Navbar = ({ onResourceSelect }) => {
             />
           </div>
 
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={['TimePicker']}>
                 <TimePicker
@@ -1258,7 +1261,7 @@ const Navbar = ({ onResourceSelect }) => {
               </DemoContainer>
             </LocalizationProvider>
           </div>
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={['TimePicker']}>
                 <TimePicker
@@ -1278,13 +1281,13 @@ const Navbar = ({ onResourceSelect }) => {
       </Dialog>
 
 
-      <Dialog open={defaultAllocationOpen} onClose={handleDefaultAllocationClose}>
+      <Dialog open={defaultAllocationOpen} onClose={handleDefaultAllocationClose} style={{ minWidth: '75vw' }}>
         <DialogTitle>Set Default Event</DialogTitle>
         <DialogContent>
           {/* Add your default allocation components here */}
           <p>Default Allocation is being added to {resourceType} : {resourceNo}</p>
 
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "25vw" }}>
             <TextField
               label="Class"
               value={classInput}
@@ -1294,7 +1297,7 @@ const Navbar = ({ onResourceSelect }) => {
             />
           </div>
 
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={['TimePicker']}>
                 <TimePicker
@@ -1306,7 +1309,7 @@ const Navbar = ({ onResourceSelect }) => {
               </DemoContainer>
             </LocalizationProvider>
           </div>
-          <div style={{ marginBottom: "1.2vh", width: "40vw" }}>
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DemoContainer components={['TimePicker']}>
                 <TimePicker
@@ -1346,24 +1349,59 @@ const Navbar = ({ onResourceSelect }) => {
             margin="normal"
             InputLabelProps={{ shrink: true }}
           />
-          <TextField
-            label="Start Time"
-            type="time"
-            value={starttime}
-            onChange={(e) => setStartTime(e.target.value)}
-            fullWidth
-            margin="normal"
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            label="End Time"
-            type="time"
-            value={endtime}
-            onChange={(e) => setEndTime(e.target.value)}
-            fullWidth
-            margin="normal"
-            InputLabelProps={{ shrink: true }}
-          />
+          {/* <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DemoContainer components={['TimePicker']}>
+              <TimePicker
+                label="Start Time"
+                type="time"
+                value={starttime}
+                onChange={(e) => setStartTime(e.target.value)}
+                fullWidth
+                margin="normal"
+                InputLabelProps={{ shrink: true }}
+              />
+            </DemoContainer>
+          </LocalizationProvider>
+
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DemoContainer components={['TimePicker']}>
+              <TimePicker
+                label="End Time"
+                type="time"
+                value={endtime}
+                onChange={(e) => setEndTime(e.target.value)}
+                fullWidth
+                margin="normal"
+                InputLabelProps={{ shrink: true }}
+              />
+            </DemoContainer>
+          </LocalizationProvider> */}
+           <div style={{ marginBottom: "1.2vh", width: "100%" }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={['TimePicker']}>
+                <TimePicker
+                  label="Start Time"
+                  onChange={(newTime) => setStartTime(newTime)}
+                  fullWidth
+                  margin="normal"
+                />
+              </DemoContainer>
+            </LocalizationProvider>
+          </div>
+          <div style={{ marginBottom: "1.2vh", width: "100%" }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DemoContainer components={['TimePicker']}>
+                <TimePicker
+                  label="End Time"
+                  onChange={(newTime) => setEndTime(newTime)}
+                  fullWidth
+                  margin="normal"
+                />
+              </DemoContainer>
+            </LocalizationProvider>
+          </div>
+
+
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteConfirm}>Delete</Button>

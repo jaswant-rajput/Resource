@@ -146,15 +146,18 @@ const Calendar = ({ selectedResourceId }) => {
             const allocationStartDate = new Date(data.startdate).toISOString().split('T')[0];
             if (allocationStartDate === nextDay) {
                 outerId = data._id;
+                console.log(allocation.createdBy)
             }
         });
-
+        console.log(user._id)
         if (!outerId) {
             console.error('No matching allocation data found for the selected date');
             triggerAlert('No matching allocation data found for the selected date', 'error');
+           
             return;
-        } else if (outerId !== user._id) {
+        } else if (allocation.createdBy !== user._id) {
             console.error('This allocation was not created by you');
+           
             triggerAlert('This allocation was not created by you', 'error');
             return;
         }
@@ -253,7 +256,7 @@ const Calendar = ({ selectedResourceId }) => {
             {/* <p>Default Allocation is {defaultclass} {time}</p> */}
             {/* <p>Selected Resource Id is : {selectedResourceId}</p> */}
             <div className='border border-primary p-2'>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxHeight: '9vh' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxHeight: '9vh',maxWidth: '340vw' }}>
                     {/* <h6 className='text-start' style={{ marginBottom: 0 }}>
                         Default Allocation is {defaultclass} {time}
                     </h6> */}
@@ -264,7 +267,7 @@ const Calendar = ({ selectedResourceId }) => {
                                     maxHeight: '100%', // Use full height of the parent
                                 }}>
                                     <p>
-                                        <b>Class:</b> {allocation.class} &nbsp;&nbsp;
+                                        <b>Class:</b> {allocation.class} &nbsp;
                                         <b>Time:</b> {allocation.time}
                                     </p>
                                 </div>
@@ -304,7 +307,8 @@ const Calendar = ({ selectedResourceId }) => {
                         const dateAllocations = allocationsForTheDay ? allocationsForTheDay.allocationRecords : [];
 
                         return (
-                            <div key={index} className='grid-cell border border-secondary' onClick={() => handleSingleAllocation(dateAllocations, currentDate.toISOString().split('T')[0])} style={{ overflowY: "scroll", scrollbarWidth: "none" }}>
+                            <div key={index} className='grid-cell border border-secondary' onClick={() => handleSingleAllocation(dateAllocations, currentDate.toISOString().split('T')[0])}
+                             style={{ overflowY: "scroll",overflowX:'scroll', scrollbarWidth: "none" }}>
                                 <h5 style={{ textAlign: "center" }}>{day}</h5>
                                 <div>
                                     {dateAllocations.map((record, recordIndex) => (
@@ -319,8 +323,8 @@ const Calendar = ({ selectedResourceId }) => {
                                                 backgroundColor: recordIndex % 2 === 0 ? '#f0f8ff' : '#ffe4e1', // Light blue for even, light pink for odd
                                             }}
                                         >
-                                            <div style={{ fontSize: '0.9vw' }}>
-                                                <p> {record.class} {record.time}</p>
+                                            <div style={{ fontSize: '0.81vw' }}>
+                                                <p> {record.class} {/*{record.time}*/}</p>
                                                 {/* <h6>{record.class}</h6>*/}
                                                 {/* {index} */}
                                             </div>
