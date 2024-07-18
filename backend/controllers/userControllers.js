@@ -31,12 +31,18 @@ exports.login = async (req, res) => {
                 const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
                 res.cookie('token', token, { expiresIn: '1d' });
                 const { _id, firstName, lastName, middleName, email, role, department } = user
-
-                return res.json({ 
-                    status: true,
-                    token,
-                    user: { _id, firstName, lastName, middleName, email, role, department }
-                })
+                if (user.isActive === false) {
+                    return res.status(200).send({
+                        message: 'Your Portal is In-Active. Contact Admin',
+                        status: false
+                    })
+                } else {
+                    return res.json({
+                        status: true,
+                        token,
+                        user: { _id, firstName, lastName, middleName, email, role, department }
+                    });
+                }
             }
         } else {
             //console.log("User doesn't exist.");
